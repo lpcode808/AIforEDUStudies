@@ -12,4 +12,8 @@ ENV/
 *.swp
 *.swo
 .idea/
-.vscode/ 
+.vscode/
+
+# Large data files
+data/Studies\ Related\ to\ Generative\ AI\ in\ Education\ —\ AI\ for\ Education_files/
+data/Studies\ Related\ to\ Generative\ AI\ in\ Education\ —\ AI\ for\ Education.html 
