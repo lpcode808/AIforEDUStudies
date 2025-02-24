@@ -1,0 +1,16 @@
+{
+  "name": "ai-education-scraper",
+  "version": "1.0.0",
+  "description": "URL scraper for AI education studies",
+  "main": "scrape-urls.js",
+  "scripts": {
+    "scrape": "node scrape-urls.js"
+  },
+  "dependencies": {
+    "axios": "^1.6.0",
+    "cheerio": "^1.0.0-rc.12",
+    "csv-parser": "^3.0.0",
+    "csv-writer": "^1.6.0",
+    "string-similarity": "^4.0.4"
+  }
+} 
