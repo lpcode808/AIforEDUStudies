@@ -24,7 +24,7 @@ This project creates a searchable and filterable interface for browsing research
 
 1. Clone this repository:
    ```bash
-   git clone https://github.com/yourusername/AIforEDUStudies.git
+   git clone https://github.com/lpcode808/AIforEDUStudies.git
    cd AIforEDUStudies
    ```
 
