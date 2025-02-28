@@ -393,6 +393,12 @@ function displayStudies(studies, forceDisplay = false) {
       resultsContainer.classList.add('card-view');
       resultsContainer.classList.remove('list-view');
       
+      // Create a dedicated grid container for the cards
+      const studiesGrid = document.createElement('div');
+      studiesGrid.id = 'studies-grid';
+      resultsContainer.innerHTML = ''; // Clear the container first
+      resultsContainer.appendChild(studiesGrid);
+      
       safeStudies.forEach((study, index) => {
         try {
           if (!study) {
@@ -415,8 +421,8 @@ function displayStudies(studies, forceDisplay = false) {
             }
           }
           
-        const card = createStudyCard(study);
-          resultsContainer.appendChild(card);
+          const card = createStudyCard(study);
+          studiesGrid.appendChild(card);
           displayCount++;
         } catch (cardError) {
           console.error(`UI: Error creating study card for index ${index}:`, cardError, study);
