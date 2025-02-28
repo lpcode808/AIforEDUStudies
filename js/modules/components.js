@@ -61,28 +61,37 @@ function createStudyCard(study) {
     card.setAttribute('data-primary-category', primaryCategory);
     
     // Add domain-specific class for styling
-    const domainClass = primaryCategory
-      .replace(/\s+/g, '-')
-      .replace(/&/g, 'and')
-      .toLowerCase();
-    card.classList.add(`domain-${domainClass}`);
+    const domainClass = getDomainClass([primaryCategory]);
+    if (domainClass) {
+        card.classList.add(domainClass);
+        console.log(`Adding domain class ${domainClass} to card for category: ${primaryCategory}`);
+    }
     
-    // Add color accent based on domain category
+    // Create and add color accent based on domain category
     let colorAccent = '';
     if (primaryCategory === 'Current AI Use and Perceptions in PK 12 & HigherEd' || 
-        primaryCategory === 'AI Use and Perceptions') {
+        primaryCategory === 'AI Use and Perceptions' || 
+        primaryCategory.includes('AI Use') || 
+        primaryCategory.includes('AI Perceptions')) {
       colorAccent = 'domain-pk12';
     } else if (primaryCategory === 'Current State of Guidelines, Training, and Policies' || 
-               primaryCategory === 'Guidelines, Training, Policies') {
+               primaryCategory === 'Guidelines, Training, Policies' ||
+               primaryCategory.includes('Guidelines') || 
+               primaryCategory.includes('Training') || 
+               primaryCategory.includes('Policies')) {
       colorAccent = 'domain-guidelines';
-    } else if (primaryCategory === 'Student Performance Data') {
+    } else if (primaryCategory === 'Student Performance Data' ||
+               primaryCategory.includes('Performance') ||
+               primaryCategory.includes('Student Data')) {
       colorAccent = 'domain-performance';
-    } else if (primaryCategory === 'Workforce Trends') {
+    } else if (primaryCategory === 'Workforce Trends' ||
+               primaryCategory.includes('Workforce')) {
       colorAccent = 'domain-workforce';
     }
     
     if (colorAccent) {
       card.classList.add(colorAccent);
+      console.log(`Adding color accent ${colorAccent} to card for category: ${primaryCategory}`);
     }
     
     // Format the date if available
@@ -332,6 +341,11 @@ function createStudyRow(study) {
     
     // Determine color based on the first category
     const domainClass = getDomainClass(categories);
+    if (domainClass) {
+      row.classList.add(domainClass);
+      console.log(`Adding domain class ${domainClass} to row for category:`, categories[0]);
+    }
+    
     let colorClass = 'var(--color-primary)';
     
     if (domainClass === 'domain-pk12') {

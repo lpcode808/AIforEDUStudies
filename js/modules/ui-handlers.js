@@ -219,7 +219,7 @@ function closeModal() {
 function updateViewMode() {
   try {
     const viewMode = AppState.getViewMode();
-    console.log(`UI: Switching to ${viewMode} view`);
+    console.log(`UI: Switching to ${viewMode} view mode`);
     
     // Get the current results container
     const resultsContainer = document.getElementById('results-container');
@@ -232,8 +232,14 @@ function updateViewMode() {
     const oldGrid = document.getElementById('studies-grid');
     const oldList = document.getElementById('studies-list');
     
-    if (oldGrid) oldGrid.remove();
-    if (oldList) oldList.remove();
+    if (oldGrid) {
+      console.log('UI: Removing old grid container');
+      oldGrid.remove();
+    }
+    if (oldList) {
+      console.log('UI: Removing old list container');
+      oldList.remove();
+    }
     
     // Create a new container for the current view
     const container = document.createElement('div');
@@ -241,12 +247,15 @@ function updateViewMode() {
     if (viewMode === 'list') {
       container.id = 'studies-list';
       container.className = 'list-view';
+      console.log('UI: Created list view container');
     } else {
       container.id = 'studies-grid';
       container.className = 'grid-view';
+      console.log('UI: Created grid view container');
     }
     
     resultsContainer.appendChild(container);
+    console.log(`UI: Appended new ${viewMode} container to results`);
     
     // Update the toggle button
     updateViewToggleButton(viewMode);
@@ -289,35 +298,38 @@ function updateViewToggleButton(viewMode) {
 /**
  * Updates the results display based on current filters
  */
-function updateResults() {
+async function updateResults() {
   try {
     console.log('UI: Updating results based on filters');
     
-    // Get the full dataset from AppState
-    let results = AppState.getStudies();
-    console.log(`UI: Starting with ${results.length} total studies`);
+    // Get all studies
+    const allStudies = AppState.getStudies();
+    console.log(`UI: Starting with ${allStudies ? allStudies.length : 0} total studies in AppState`);
     
-    // Show all when no filters are active
-    const activeFiltersSection = document.getElementById('active-filters-section');
+    if (!allStudies || !Array.isArray(allStudies) || allStudies.length === 0) {
+      console.error('UI: No studies data available in AppState');
+      displayError('No studies data available. Please try refreshing the page.');
+      return;
+    }
     
-    // Apply category filters if any are active
+    // Get category filters from AppState
     const categoryFilters = AppState.getCategoryFilters();
-    if (categoryFilters.length > 0) {
-      console.log(`UI: Filtering by categories: ${categoryFilters.join(', ')}`);
-      results = results.filter(study => {
-        if (!study || !Array.isArray(study.categories)) return false;
-        return study.categories.some(category => categoryFilters.includes(category));
-      });
-      console.log(`UI: ${results.length} studies match category filters`);
+    console.log(`UI: Using ${categoryFilters.length} category filters`);
+    
+    // If no category filters are active, display all studies
+    if (!categoryFilters || categoryFilters.length === 0) {
+      console.log('UI: No category filters active, displaying all studies');
+      displayStudies(allStudies);
+      return;
     }
     
-    // Apply search query if present
-    const searchQuery = AppState.getSearchQuery();
-    if (searchQuery) {
-      console.log(`UI: Filtering by search query: "${searchQuery}"`);
-      results = search(results, searchQuery);
-      console.log(`UI: ${results.length} studies match search query`);
-    }
+    // Import filterStudies from search-engine
+    const { filterStudies } = await import('./search-engine.js');
+    
+    // Filter studies directly
+    const results = filterStudies(allStudies);
+    
+    console.log(`UI: Found ${results ? results.length : 0} studies matching current filters`);
     
     // Update active filters UI
     updateActiveFiltersDisplay();
@@ -332,88 +344,130 @@ function updateResults() {
 }
 
 /**
- * Displays a list of studies in the results container
+ * Displays studies in the results container
  * @param {Array} studies - Array of study objects to display
+ * @param {boolean} forceDisplay - Whether to force display even if studies appear empty
  */
-function displayStudies(studies) {
+function displayStudies(studies, forceDisplay = false) {
   try {
-    const resultsContainer = document.getElementById('results-container');
+    console.log(`UI: displayStudies called with ${studies ? studies.length : 'no'} studies. forceDisplay=${forceDisplay}`);
     
+    // Inspect what we received for debugging
+    if (studies && studies.length > 0) {
+      console.log('UI: First study sample:', JSON.stringify(studies[0]).substring(0, 200));
+      console.log('UI: Study categories type:', typeof studies[0].categories);
+      console.log('UI: Study categories value:', studies[0].categories);
+    } else {
+      console.log('UI: No studies received or empty array');
+    }
+    
+    // Use a safe copy of studies to avoid issues
+    const safeStudies = studies || [];
+    
+    // Clear results container
+    const resultsContainer = document.getElementById('results-container');
     if (!resultsContainer) {
-      console.error('UI: Could not find results container');
+      console.error('UI: Results container not found in the DOM');
       return;
     }
     
-    // Clear the container
     resultsContainer.innerHTML = '';
     
-    // Create a separate container for the studies
-    const viewMode = AppState.getViewMode();
-    const container = document.createElement('div');
-    
-    if (viewMode === 'list') {
-      container.id = 'studies-list';
-      container.className = 'list-view';
-    } else {
-      container.id = 'studies-grid';
-      container.className = 'grid-view';
-    }
-    
-    // If no studies, show empty message
-    if (!studies || !Array.isArray(studies) || studies.length === 0) {
-      const noResultsElement = document.createElement('p');
-      noResultsElement.className = 'no-results';
-      noResultsElement.textContent = 'No studies match your filters. Try adjusting your criteria.';
-      resultsContainer.appendChild(noResultsElement);
+    // If no studies to display and not forcing display, show message
+    if (safeStudies.length === 0 && !forceDisplay) {
+      console.log('UI: No studies to display');
+      resultsContainer.innerHTML = '<div class="no-results">No studies match your filters. Try adjusting your search criteria.</div>';
+      console.log('UI: Displayed "No studies match your filters" message');
       return;
     }
     
-    // Create a document fragment for performance
-    const fragment = document.createDocumentFragment();
+    // Get current view mode
+    const viewMode = AppState.getViewMode();
+    console.log(`UI: Displaying studies in ${viewMode} view`);
     
-    // Get the actual count from the data array length - don't use the header-adjusted count
-    const totalStudies = AppState.getStudies().length - 1; // Subtract 1 for header row
+    // Process each study
+    let displayCount = 0;
     
-    // Add each study to the fragment based on view mode
-    if (viewMode === 'list') {
-      // List view - simpler rows
-      studies.slice(0, totalStudies).forEach(study => {
+    // Create and append study elements
+    if (viewMode === 'card') {
+      resultsContainer.classList.add('card-view');
+      resultsContainer.classList.remove('list-view');
+      
+      safeStudies.forEach((study, index) => {
         try {
-          const row = createStudyRow(study);
-          if (row) {
-            fragment.appendChild(row);
+          if (!study) {
+            console.warn(`UI: Study at index ${index} is null or undefined`);
+            return;
           }
-        } catch (error) {
-          console.error(`UI: Error creating row for study ${study?.id || 'unknown'}:`, error);
+          
+          // Ensure study has required properties
+          study.title = study.title || 'Untitled Study';
+          study.description = study.description || '';
+          study.organization = study.organization || 'Unknown';
+          study.date = study.date || '';
+          
+          // Normalize categories if needed
+          if (!study.categories || !Array.isArray(study.categories)) {
+            if (typeof study.categories === 'string') {
+              study.categories = study.categories.split('|').map(c => c.trim()).filter(c => c);
+            } else {
+              study.categories = ['Uncategorized'];
+            }
+          }
+          
+        const card = createStudyCard(study);
+          resultsContainer.appendChild(card);
+          displayCount++;
+        } catch (cardError) {
+          console.error(`UI: Error creating study card for index ${index}:`, cardError, study);
         }
       });
     } else {
-      // Card view - detailed cards
-      studies.slice(0, totalStudies).forEach(study => {
+      resultsContainer.classList.add('list-view');
+      resultsContainer.classList.remove('card-view');
+      
+      safeStudies.forEach((study, index) => {
         try {
-          const card = createStudyCard(study);
-          if (card) {
-            fragment.appendChild(card);
+          if (!study) {
+            console.warn(`UI: Study at index ${index} is null or undefined`);
+            return;
           }
-        } catch (error) {
-          console.error(`UI: Error creating card for study ${study?.id || 'unknown'}:`, error);
+          
+          // Ensure study has required properties
+          study.title = study.title || 'Untitled Study';
+          study.description = study.description || '';
+          study.organization = study.organization || 'Unknown';
+          study.date = study.date || '';
+          
+          // Normalize categories if needed
+          if (!study.categories || !Array.isArray(study.categories)) {
+            if (typeof study.categories === 'string') {
+              study.categories = study.categories.split('|').map(c => c.trim()).filter(c => c);
+            } else {
+              study.categories = ['Uncategorized'];
+            }
+          }
+          
+          const row = createStudyRow(study);
+          resultsContainer.appendChild(row);
+          displayCount++;
+        } catch (rowError) {
+          console.error(`UI: Error creating study row for index ${index}:`, rowError, study);
         }
       });
     }
     
-    // Add the fragment to the container
-    container.appendChild(fragment);
+    console.log(`UI: Successfully displayed ${displayCount} of ${safeStudies.length} studies in ${viewMode} view`);
     
-    // Add the container to the results container
-    resultsContainer.appendChild(container);
-    
-    console.log(`UI: Finished displaying ${studies.length} studies in ${viewMode} view`);
-    
+    // If no studies were actually displayed, show a message
+    if (displayCount === 0 && safeStudies.length > 0) {
+      resultsContainer.innerHTML = '<div class="no-results">Error displaying studies. Check console for details.</div>';
+    }
   } catch (error) {
-    console.error('UI: Error displaying studies:', error);
+    console.error('UI: Error in displayStudies:', error);
     const resultsContainer = document.getElementById('results-container');
     if (resultsContainer) {
-      resultsContainer.innerHTML = `<p class="error-message">Error displaying studies: ${error.message}</p>`;
+      resultsContainer.innerHTML = '<div class="no-results">An error occurred while displaying studies. Check the console for details.</div>';
     }
   }
 }
@@ -498,9 +552,9 @@ function loadFiltersFromURL() {
  */
 function updateActiveFiltersDisplay() {
   // Hide active filters section entirely - buttons now show active state visually
-  const activeFiltersContainer = document.getElementById('active-filters');
+    const activeFiltersContainer = document.getElementById('active-filters');
   if (activeFiltersContainer) {
-    activeFiltersContainer.classList.add('hidden');
+      activeFiltersContainer.classList.add('hidden');
   }
   
   // No need to display filter chips as buttons now show the active state
@@ -568,11 +622,102 @@ function populateCategoryFilters(categories) {
   }
 }
 
+/**
+ * Returns HTML for category badges
+ * @param {Object} study - Study object
+ * @returns {string} HTML string for category badges
+ */
+function getCategoryBadges(study) {
+  try {
+    if (!study || !study.categories) {
+      return '';
+    }
+    
+    const categoriesArr = Array.isArray(study.categories) 
+      ? study.categories 
+      : study.categories.split('|');
+    
+    if (categoriesArr.length === 0) {
+      return '';
+    }
+    
+    console.log(`UI: Creating badges for ${categoriesArr.length} categories`);
+    
+    return categoriesArr.map(category => {
+      const safeCategory = category.trim();
+      const categoryClass = getDomainClass({ categories: safeCategory });
+      return `<span class="category-badge ${categoryClass}">${safeCategory}</span>`;
+    }).join('');
+  } catch (error) {
+    console.error('UI: Error creating category badges:', error);
+    return '';
+  }
+}
+
+/**
+ * Returns CSS class for domain-based color coding
+ * @param {Object} study - Study object
+ * @returns {string} CSS class name
+ */
+function getDomainClass(study) {
+  try {
+    if (!study || !study.categories) {
+      console.log('UI: No categories found for domain class');
+      return 'domain-default';
+    }
+    
+    const categories = Array.isArray(study.categories) 
+      ? study.categories 
+      : study.categories.split('|');
+    
+    const primaryCategory = categories[0]?.trim() || '';
+    console.log(`UI: Finding domain class for primary category: ${primaryCategory}`);
+    
+    // Map category to domain class
+    if (primaryCategory.includes('AI Use') || 
+        primaryCategory.includes('Perception') || 
+        primaryCategory === 'AI Use and Perceptions' ||
+        primaryCategory === 'Current AI Use and Perceptions in PK 12 & HigherEd') {
+      return 'domain-pk12'; // Blue color
+    } 
+    else if (primaryCategory.includes('Workforce') || 
+             primaryCategory === 'Workforce Trends' ||
+             primaryCategory.toLowerCase().includes('jobs') ||
+             primaryCategory.toLowerCase().includes('work')) {
+      return 'domain-workforce'; // Orange color (was previously green)
+    }
+    else if (primaryCategory.includes('Performance') || 
+             primaryCategory.includes('Student Data') || 
+             primaryCategory === 'Student Performance Data') {
+      return 'domain-performance'; // Green color (was previously orange)
+    }
+    else if (primaryCategory.includes('Guidelines') || 
+             primaryCategory.includes('Training') || 
+             primaryCategory.includes('Policies') || 
+             primaryCategory === 'Guidelines, Training, Policies' ||
+             primaryCategory === 'Current State of Guidelines, Training, and Policies') {
+      return 'domain-guidelines'; // Red color
+    }
+    
+    console.log(`UI: No matching domain found for "${primaryCategory}", using default`);
+    return 'domain-default';
+  } catch (error) {
+    console.error('UI: Error determining domain class:', error);
+    return 'domain-default';
+  }
+}
+
 export { 
-  setupEventListeners, 
-  displayStudies, 
-  populateCategoryFilters, 
+  setupEventListeners,
+  displayStudies,
+  populateCategoryFilters,
   loadFiltersFromURL,
   updateResults,
-  updateViewMode
+  updateViewMode,
+  createStudyCard,
+  createStudyRow,
+  getDomainClass,
+  getCategoryBadges,
+  displayError,
+  updateActiveFiltersDisplay
 };

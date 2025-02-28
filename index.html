@@ -7,8 +7,29 @@
     <link rel="stylesheet" href="css/styles.css">
     <link rel="icon" href="https://images.squarespace-cdn.com/content/v1/64398599b0c21f1705fb8fb3/1d0fe464-45b8-4d3d-b5d6-6512b8297b10/favicon.ico?format=100w" type="image/x-icon">
 
+    <!-- Add debug links -->
+    <style>
+        .debug-panel {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 10px;
+            text-align: center;
+            z-index: 1000;
+            border-top: 1px solid #f5c6cb;
+        }
+        .debug-panel a {
+            color: #0056b3;
+            text-decoration: underline;
+            margin: 0 10px;
+        }
+    </style>
+
     <!-- Load modules using ES modules with cache busting for latest version -->
-    <script type="module" src="js/main.js?v=3"></script>
+    <script type="module" src="js/main.js?v=4"></script>
 </head>
 <body>
     <!-- Add the filters-wrapper to make these sections sticky -->
@@ -59,6 +80,9 @@
                 <!-- Results will be populated by JavaScript -->
                 <p class="placeholder-text">Loading studies...</p>
             </div>
+            <div id="loading-indicator" class="loading-indicator">
+                Loading studies...
+            </div>
         </section>
     </main>
 
@@ -75,5 +99,12 @@
     <footer>
         <p>&copy; 2025 AI for Education</p>
     </footer>
+    
+    <!-- Debug Panel -->
+    <div class="debug-panel">
+        <strong>Debug Mode:</strong> Troubleshooting module loading issues
+        <a href="js/debug.html" target="_blank">Module Debug Tool</a>
+        <a href="js/bootstrap-debug.html" target="_blank">Bootstrap Debug Tool</a>
+    </div>
 </body>
 </html> 

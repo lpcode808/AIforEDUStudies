@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bootstrap Module Debug</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            color: #333;
+        }
+        .output {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+        pre {
+            background-color: #f8f8f8;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 4px;
+            overflow: auto;
+        }
+        .error {
+            color: #d9534f;
+        }
+        .success {
+            color: #5cb85c;
+        }
+    </style>
+</head>
+<body>
+    <h1>Bootstrap Module Debug</h1>
+    <p>This page tests the bootstrapApplication function and module imports</p>
+    
+    <div class="output">
+        <h2>Console Output</h2>
+        <pre id="console-output"></pre>
+    </div>
+    
+    <script>
+        // Override console methods to display in the UI
+        const consoleOutput = document.getElementById('console-output');
+        const originalLog = console.log;
+        const originalError = console.error;
+        
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            
+            const message = args.map(arg => {
+                if (typeof arg === 'object') {
+                    return JSON.stringify(arg, null, 2);
+                }
+                return arg;
+            }).join(' ');
+            
+            consoleOutput.innerHTML += `<div>${message}</div>`;
+        };
+        
+        console.error = function(...args) {
+            originalError.apply(console, args);
+            
+            const message = args.map(arg => {
+                if (typeof arg === 'object') {
+                    return JSON.stringify(arg, null, 2);
+                }
+                return arg;
+            }).join(' ');
+            
+            consoleOutput.innerHTML += `<div class="error">${message}</div>`;
+        };
+        
+        console.log('Debug page loaded');
+    </script>
+    
+    <script type="module" src="bootstrap-debug.js"></script>
+</body>
+</html> 

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Module Debug Tool</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        header {
+            background-color: #333;
+            color: white;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        h1 {
+            margin: 0;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .card {
+            background-color: white;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        pre {
+            background-color: #f8f8f8;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            padding: 10px;
+            overflow: auto;
+        }
+        .success {
+            color: green;
+        }
+        .error {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Module Debug Tool</h1>
+        </div>
+    </header>
+    
+    <div class="container">
+        <div class="card">
+            <h2>Module Import Tests</h2>
+            <p>This tool tests the import of all required modules to help identify dependency issues.</p>
+            <div id="console-output">
+                <p>Console Output:</p>
+                <pre id="console-log"></pre>
+            </div>
+        </div>
+        
+        <div id="module-results" class="card">
+            <h2>Import Results</h2>
+            <p>Results will appear here after tests run.</p>
+        </div>
+    </div>
+    
+    <script>
+        // Override console log to display in the UI
+        const originalLog = console.log;
+        const originalError = console.error;
+        const consoleLogElement = document.getElementById('console-log');
+        
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            
+            const message = args.map(arg => {
+                if (typeof arg === 'object') {
+                    return JSON.stringify(arg, null, 2);
+                }
+                return arg;
+            }).join(' ');
+            
+            consoleLogElement.innerHTML += `<span>${message}</span>\n`;
+        };
+        
+        console.error = function(...args) {
+            originalError.apply(console, args);
+            
+            const message = args.map(arg => {
+                if (typeof arg === 'object') {
+                    return JSON.stringify(arg, null, 2);
+                }
+                return arg;
+            }).join(' ');
+            
+            consoleLogElement.innerHTML += `<span class="error">${message}</span>\n`;
+        };
+    </script>
+    
+    <script type="module" src="debug.js"></script>
+</body>
+</html> 
