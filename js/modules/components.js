@@ -305,14 +305,204 @@ function getCategoryShortLabel(category) {
   }
 }
 
-// Single export statement to avoid duplicates
-export {
+/**
+ * Creates a study row component for the list view
+ * @param {Object} study - Study data object
+ * @returns {HTMLElement} - Study row element
+ */
+function createStudyRow(study) {
+  try {
+    if (!study) {
+      console.error('Cannot create study row: study data is undefined');
+      return null;
+    }
+    
+    // Extract fields with default values for safety
+    const {
+      id = 'unknown',
+      title = 'Untitled Study',
+      url = '#',
+      categories = []
+    } = study;
+    
+    // Create the row element
+    const row = document.createElement('div');
+    row.className = 'study-row';
+    row.dataset.id = id;
+    
+    // Determine color based on the first category
+    const domainClass = getDomainClass(categories);
+    let colorClass = 'var(--color-primary)';
+    
+    if (domainClass === 'domain-pk12') {
+      colorClass = 'var(--color-domain-pk12)';
+    } else if (domainClass === 'domain-guidelines') {
+      colorClass = 'var(--color-domain-guidelines)';
+    } else if (domainClass === 'domain-performance') {
+      colorClass = 'var(--color-domain-performance)';
+    } else if (domainClass === 'domain-workforce') {
+      colorClass = 'var(--color-domain-workforce)';
+    }
+    
+    // Create row HTML structure
+    row.innerHTML = `
+      <div class="color-indicator" style="background-color: ${colorClass};"></div>
+      <h3 class="row-title">${title}</h3>
+      <div class="row-action">
+        <a href="${url}" class="view-study-row-btn" target="_blank" rel="noopener">View Study</a>
+      </div>
+    `;
+    
+    return row;
+  } catch (error) {
+    console.error('Error creating study row:', error);
+    return null;
+  }
+}
+
+/**
+ * Creates a modal content element with study details
+ * @param {Object} study - Study data object
+ * @returns {DocumentFragment} - Document fragment with modal content
+ */
+function createStudyModalContent(study) {
+  try {
+    if (!study) {
+      console.error('Cannot create modal content: study data is undefined');
+      return document.createDocumentFragment();
+    }
+    
+    // Extract fields with default values for safety
+    const {
+      title = 'Untitled Study',
+      organization = 'Unknown Organization',
+      date = '',
+      description = 'No description available',
+      url = '#',
+      categories = []
+    } = study;
+    
+    // Create document fragment
+    const fragment = document.createDocumentFragment();
+    
+    // Create header element
+    const header = document.createElement('div');
+    header.className = 'modal-header';
+    
+    // Create title element
+    const titleEl = document.createElement('h2');
+    titleEl.className = 'modal-title';
+    titleEl.textContent = title;
+    header.appendChild(titleEl);
+    
+    // Create metadata section
+    const metaSection = document.createElement('div');
+    metaSection.className = 'modal-meta';
+    
+    if (organization) {
+      const orgEl = document.createElement('p');
+      orgEl.className = 'modal-organization';
+      orgEl.textContent = `Organization: ${organization}`;
+      metaSection.appendChild(orgEl);
+    }
+    
+    if (date) {
+      const dateEl = document.createElement('p');
+      dateEl.className = 'modal-date';
+      dateEl.textContent = `Date: ${date}`;
+      metaSection.appendChild(dateEl);
+    }
+    
+    if (categories && categories.length > 0) {
+      const catEl = document.createElement('p');
+      catEl.className = 'modal-categories';
+      catEl.textContent = `Categories: ${categories.join(', ')}`;
+      metaSection.appendChild(catEl);
+    }
+    
+    // Create description section
+    const descSection = document.createElement('div');
+    descSection.className = 'modal-description';
+    
+    const descTitle = document.createElement('h3');
+    descTitle.textContent = 'Description';
+    descSection.appendChild(descTitle);
+    
+    const descText = document.createElement('p');
+    descText.textContent = description;
+    descSection.appendChild(descText);
+    
+    // Create action section
+    const actionSection = document.createElement('div');
+    actionSection.className = 'modal-actions';
+    
+    const viewLink = document.createElement('a');
+    viewLink.href = url;
+    viewLink.className = 'view-study-btn';
+    viewLink.target = '_blank';
+    viewLink.rel = 'noopener';
+    viewLink.textContent = 'View Study';
+    actionSection.appendChild(viewLink);
+    
+    // Append all sections to fragment
+    fragment.appendChild(header);
+    fragment.appendChild(metaSection);
+    fragment.appendChild(descSection);
+    fragment.appendChild(actionSection);
+    
+    return fragment;
+  } catch (error) {
+    console.error('Error creating modal content:', error);
+    return document.createDocumentFragment();
+  }
+}
+
+/**
+ * Get the domain class based on categories
+ * @param {Array} categories - Array of categories
+ * @returns {string} - Domain class
+ */
+function getDomainClass(categories) {
+  if (!categories || categories.length === 0) return '';
+  
+  // Get the first category
+  const category = categories[0];
+  
+  // Map categories to domain classes
+  if (category === 'AI Use and Perceptions') {
+    return 'domain-pk12';
+  } else if (category === 'Guidelines, Training, Policies') {
+    return 'domain-guidelines';
+  } else if (category === 'Student Performance Data') {
+    return 'domain-performance';
+  } else if (category === 'Workforce Trends') {
+    return 'domain-workforce';
+  }
+  
+  return '';
+}
+
+/**
+ * Truncate text to a specified length
+ * @param {string} text - Text to truncate
+ * @param {number} maxLength - Maximum length
+ * @returns {string} - Truncated text
+ */
+function truncateText(text, maxLength) {
+  if (!text || typeof text !== 'string') return '';
+  
+  if (text.length <= maxLength) return text;
+  
+  return text.substring(0, maxLength) + '...';
+}
+
+// Export components
+export { 
   createStudyCard,
-  createCategoryFilter,
-  createSubjectFilter,
-  createToast,
-  createNoResults,
-  formatDate,
-  formatMetadataValue,
-  createFilterChip
+  createStudyRow,
+  createStudyModalContent,
+  createFilterChip,
+  getCategoryShortLabel,
+  getDomainClass,
+  truncateText
 }; 

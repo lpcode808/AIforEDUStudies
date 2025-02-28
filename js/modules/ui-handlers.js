@@ -5,13 +5,13 @@
  */
 
 import AppState from './state.js';
-import { createStudyCard, createFilterChip } from './components.js';
+import { createStudyCard, createStudyRow, createStudyModalContent, createFilterChip } from './components.js';
 import { search } from './search-engine.js';
 
 /**
  * Sets up all event listeners for the UI
  */
-export function setupEventListeners() {
+function setupEventListeners() {
   console.log('UI: Setting up event listeners');
 
   // Category filter listeners (now button-based)
@@ -83,12 +83,213 @@ export function setupEventListeners() {
   } else {
     console.warn('UI: Clear filters button not found in DOM');
   }
+  
+  // View toggle button
+  const toggleViewBtn = document.getElementById('toggle-view-btn');
+  if (toggleViewBtn) {
+    toggleViewBtn.addEventListener('click', () => {
+      const newMode = AppState.toggleViewMode();
+      updateViewMode();
+    });
+  } else {
+    console.warn('UI: View toggle button not found in DOM');
+  }
+  
+  // Modal setup
+  setupModalEventListeners();
+}
+
+/**
+ * Set up event listeners for the modal
+ */
+function setupModalEventListeners() {
+  const modalOverlay = document.getElementById('study-modal-overlay');
+  const modalCloseBtn = document.getElementById('study-modal-close');
+  
+  if (!modalOverlay || !modalCloseBtn) {
+    console.warn('UI: Modal elements not found in DOM');
+    return;
+  }
+  
+  // Close modal when clicking the close button
+  modalCloseBtn.addEventListener('click', () => {
+    closeModal();
+  });
+  
+  // Close modal when clicking outside the modal content
+  modalOverlay.addEventListener('click', (event) => {
+    if (event.target === modalOverlay) {
+      closeModal();
+    }
+  });
+  
+  // Close modal when pressing escape key
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && modalOverlay.classList.contains('active')) {
+      closeModal();
+    }
+  });
+  
+  // Delegate click events on study rows to show modal
+  const resultsContainer = document.getElementById('results-container');
+  if (resultsContainer) {
+    resultsContainer.addEventListener('click', (event) => {
+      // Only handle clicks if we're in list view
+      if (AppState.getViewMode() !== 'list') return;
+      
+      const studyRow = event.target.closest('.study-row');
+      // Only process if it's a click on the row but not on the view button
+      if (studyRow && !event.target.closest('.view-study-row-btn')) {
+        const studyId = studyRow.dataset.id;
+        if (studyId) {
+          openStudyDetailsModal(studyId);
+        }
+      }
+    });
+  }
+}
+
+/**
+ * Open the study details modal for a specific study
+ * @param {string} studyId - ID of the study to display
+ */
+function openStudyDetailsModal(studyId) {
+  try {
+    // Find the study in the AppState
+    const studies = AppState.getStudies();
+    const study = studies.find(s => s.id === studyId);
+    
+    if (!study) {
+      console.error(`UI: Could not find study with ID ${studyId}`);
+      return;
+    }
+    
+    // Get the modal elements
+    const modalContent = document.getElementById('study-modal-content');
+    const modalOverlay = document.getElementById('study-modal-overlay');
+    
+    if (!modalContent || !modalOverlay) {
+      console.error('UI: Modal elements not found in DOM');
+      return;
+    }
+    
+    // Clear existing content
+    modalContent.innerHTML = '';
+    
+    // Create and append new content
+    const content = createStudyModalContent(study);
+    modalContent.appendChild(content);
+    
+    // Show the modal
+    modalOverlay.classList.add('active');
+    
+    // Add body class to prevent scrolling
+    document.body.classList.add('modal-open');
+  } catch (error) {
+    console.error('UI: Error opening study modal:', error);
+  }
+}
+
+/**
+ * Close the study details modal
+ */
+function closeModal() {
+  try {
+    const modalOverlay = document.getElementById('study-modal-overlay');
+    
+    if (!modalOverlay) {
+      console.error('UI: Modal overlay not found in DOM');
+      return;
+    }
+    
+    // Hide the modal
+    modalOverlay.classList.remove('active');
+    
+    // Remove body class to enable scrolling
+    document.body.classList.remove('modal-open');
+  } catch (error) {
+    console.error('UI: Error closing modal:', error);
+  }
+}
+
+/**
+ * Switch to list view or card view based on the current AppState view mode
+ * This updates the UI to reflect the current view mode
+ */
+function updateViewMode() {
+  try {
+    const viewMode = AppState.getViewMode();
+    console.log(`UI: Switching to ${viewMode} view`);
+    
+    // Get the current results container
+    const resultsContainer = document.getElementById('results-container');
+    if (!resultsContainer) {
+      console.error('UI: Results container not found');
+      return;
+    }
+    
+    // Remove any existing view containers
+    const oldGrid = document.getElementById('studies-grid');
+    const oldList = document.getElementById('studies-list');
+    
+    if (oldGrid) oldGrid.remove();
+    if (oldList) oldList.remove();
+    
+    // Create a new container for the current view
+    const container = document.createElement('div');
+    
+    if (viewMode === 'list') {
+      container.id = 'studies-list';
+      container.className = 'list-view';
+    } else {
+      container.id = 'studies-grid';
+      container.className = 'grid-view';
+    }
+    
+    resultsContainer.appendChild(container);
+    
+    // Update the toggle button
+    updateViewToggleButton(viewMode);
+    
+    // Re-display the studies with the current view
+    updateResults();
+  } catch (error) {
+    console.error('UI: Error updating view mode:', error);
+  }
+}
+
+/**
+ * Updates the view toggle button to reflect the current view mode
+ * @param {string} viewMode - Current view mode ('card' or 'list') 
+ */
+function updateViewToggleButton(viewMode) {
+  try {
+    const toggleBtn = document.getElementById('toggle-view-btn');
+    if (!toggleBtn) return;
+    
+    const iconSpan = toggleBtn.querySelector('.view-icon');
+    const labelSpan = toggleBtn.querySelector('.view-label');
+    
+    if (viewMode === 'list') {
+      // We're in list view, so button should show option for card view
+      toggleBtn.classList.add('active');
+      if (iconSpan) iconSpan.textContent = '🔲';
+      if (labelSpan) labelSpan.textContent = 'Card View';
+    } else {
+      // We're in card view, so button should show option for list view
+      toggleBtn.classList.remove('active');
+      if (iconSpan) iconSpan.textContent = '📋';
+      if (labelSpan) labelSpan.textContent = 'List View';
+    }
+  } catch (error) {
+    console.error('UI: Error updating view toggle button:', error);
+  }
 }
 
 /**
  * Updates the results display based on current filters
  */
-export function updateResults() {
+function updateResults() {
   try {
     console.log('UI: Updating results based on filters');
     
@@ -134,7 +335,7 @@ export function updateResults() {
  * Displays a list of studies in the results container
  * @param {Array} studies - Array of study objects to display
  */
-export function displayStudies(studies) {
+function displayStudies(studies) {
   try {
     const resultsContainer = document.getElementById('results-container');
     
@@ -146,41 +347,17 @@ export function displayStudies(studies) {
     // Clear the container
     resultsContainer.innerHTML = '';
     
-    // Create a separate container for the studies grid
-    const gridContainer = document.createElement('div');
-    gridContainer.id = 'studies-grid';
+    // Create a separate container for the studies
+    const viewMode = AppState.getViewMode();
+    const container = document.createElement('div');
     
-    // Add study counter element with a fixed calculation logic
-    // Get the actual count from the data array length - don't use the header-adjusted count
-    const totalStudies = AppState.getStudies().length - 1; // Subtract 1 for header row
-    const displayedStudies = studies ? studies.length : 0;
-    
-    // Fix the count to ensure displayed studies never exceeds total studies
-    const adjustedDisplayedStudies = Math.min(displayedStudies, totalStudies);
-    
-    /* Studies counter disabled to save space
-    // Remove any existing counter before adding a new one
-    const existingCounter = document.querySelector('.studies-counter');
-    if (existingCounter) {
-      existingCounter.remove();
-    }
-    
-    // Create the counter with a more prominent styling as a standalone element
-    const counterElement = document.createElement('div');
-    counterElement.className = 'studies-counter';
-    counterElement.innerHTML = `<span>Showing ${adjustedDisplayedStudies} of ${totalStudies} studies</span>`;
-    
-    // Find the new container for the counter (below Filters heading)
-    const counterContainer = document.getElementById('studies-counter-container');
-    if (counterContainer) {
-      // Clear any existing content in the counter container
-      counterContainer.innerHTML = '';
-      counterContainer.appendChild(counterElement);
+    if (viewMode === 'list') {
+      container.id = 'studies-list';
+      container.className = 'list-view';
     } else {
-      // Fallback to the old location if container not found
-      resultsContainer.appendChild(counterElement);
+      container.id = 'studies-grid';
+      container.className = 'grid-view';
     }
-    */
     
     // If no studies, show empty message
     if (!studies || !Array.isArray(studies) || studies.length === 0) {
@@ -194,25 +371,43 @@ export function displayStudies(studies) {
     // Create a document fragment for performance
     const fragment = document.createDocumentFragment();
     
-    // Add each study card to the fragment (use the adjusted count to prevent showing more than total)
-    studies.slice(0, totalStudies).forEach(study => {
-      try {
-        const card = createStudyCard(study);
-        if (card) {
-          fragment.appendChild(card);
+    // Get the actual count from the data array length - don't use the header-adjusted count
+    const totalStudies = AppState.getStudies().length - 1; // Subtract 1 for header row
+    
+    // Add each study to the fragment based on view mode
+    if (viewMode === 'list') {
+      // List view - simpler rows
+      studies.slice(0, totalStudies).forEach(study => {
+        try {
+          const row = createStudyRow(study);
+          if (row) {
+            fragment.appendChild(row);
+          }
+        } catch (error) {
+          console.error(`UI: Error creating row for study ${study?.id || 'unknown'}:`, error);
         }
-      } catch (error) {
-        console.error(`UI: Error creating card for study ${study?.id || 'unknown'}:`, error);
-      }
-    });
+      });
+    } else {
+      // Card view - detailed cards
+      studies.slice(0, totalStudies).forEach(study => {
+        try {
+          const card = createStudyCard(study);
+          if (card) {
+            fragment.appendChild(card);
+          }
+        } catch (error) {
+          console.error(`UI: Error creating card for study ${study?.id || 'unknown'}:`, error);
+        }
+      });
+    }
     
-    // Add the fragment to the grid container
-    gridContainer.appendChild(fragment);
+    // Add the fragment to the container
+    container.appendChild(fragment);
     
-    // Add the grid container to the results container
-    resultsContainer.appendChild(gridContainer);
+    // Add the container to the results container
+    resultsContainer.appendChild(container);
     
-    console.log('UI: Finished displaying studies');
+    console.log(`UI: Finished displaying ${studies.length} studies in ${viewMode} view`);
     
   } catch (error) {
     console.error('UI: Error displaying studies:', error);
@@ -226,7 +421,7 @@ export function displayStudies(studies) {
 /**
  * Loads filters from URL parameters
  */
-export function loadFiltersFromURL() {
+function loadFiltersFromURL() {
   try {
     console.log('UI: Loading filters from URL parameters');
     
@@ -332,7 +527,7 @@ function displayError(message) {
  * Populates the category filters panel with big buttons
  * @param {Array} categories - Array of category strings
  */
-export function populateCategoryFilters(categories) {
+function populateCategoryFilters(categories) {
   try {
     if (!Array.isArray(categories)) {
       console.error('UI: Invalid categories data for filters');
@@ -372,3 +567,12 @@ export function populateCategoryFilters(categories) {
     console.error('UI: Error populating category filters:', error);
   }
 }
+
+export { 
+  setupEventListeners, 
+  displayStudies, 
+  populateCategoryFilters, 
+  loadFiltersFromURL,
+  updateResults,
+  updateViewMode
+};

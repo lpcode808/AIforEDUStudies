@@ -21,7 +21,27 @@ If you see "Duplicate export" SyntaxErrors in the future, follow this same patte
 Consider having a linting rule that catches duplicate exports during development.
 Let me know if you encounter any more errors after this fix!
 
+# New Lessons: Systematic JavaScript Module Structure
 
+## Avoiding Duplicate Exports - A Systematic Approach
+
+Today we encountered another duplicate export error, this time with multiple functions in the same file. Our successful approach contained these key elements:
+
+1. **Recognize patterns**: We identified this was part of a larger pattern of mixing export styles (individual exports and block exports of the same functions).
+
+2. **Apply consistent rules**: Rather than fixing just the one visible error, we systematically applied a single export pattern across the entire file.
+
+3. **Proactive problem solving**: By fixing all potential duplicate exports at once, we avoided multiple rounds of debugging.
+
+4. **Documentation**: We captured this pattern in our lessons learned for future reference.
+
+The key insight is that JavaScript module issues are often systematic rather than isolated. When you find one export problem, check the entire file's export structure rather than making minimal changes.
+
+## For future modules:
+- Choose one export style per file and stick with it consistently
+- Prefer a single export block at the end of the file for better maintainability
+- When fixing one error, look for similar patterns throughout the codebase
+- Include version notes in module comments to track significant structural changes
 
 # Lessons Learned: Best Practices for Web Application Development
 

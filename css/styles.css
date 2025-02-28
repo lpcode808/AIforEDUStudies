@@ -137,14 +137,25 @@ a:hover {
 
 /* Search section */
 .search-section {
-  padding: 10px 0;
-  background-color: #f5f7fa;
+  background-color: var(--color-background-accent);
+  padding: 1.5rem 2rem;
+  border-radius: var(--border-radius-lg);
+  margin-bottom: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  max-width: 1400px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .search-container {
   display: flex;
+  width: 100%;
   max-width: 600px;
-  margin: 0 auto;
+  margin-right: 1rem;
+  flex: 1;
 }
 
 #search-input {
@@ -164,10 +175,13 @@ a:hover {
   cursor: pointer;
   font-size: var(--font-size-base);
   transition: var(--transition-fast);
+  font-weight: bold;
+  box-shadow: 0 2px 4px rgba(52, 152, 219, 0.3);
 }
 
 #search-button:hover {
   background-color: var(--color-primary-dark);
+  box-shadow: 0 3px 6px rgba(52, 152, 219, 0.4);
 }
 
 /* Filters section */
@@ -474,10 +488,10 @@ footer {
   font-size: 14px;
   position: relative;
   padding-left: 2.5rem;
-  width: 100%; /* Ensure buttons fill their grid cells */
-  height: 100%; /* Make all buttons the same height */
-  min-height: 60px; /* Set minimum height for consistency */
-  margin: 0; /* Reset margin */
+  width: 100%;
+  height: 100%;
+  min-height: 60px;
+  margin: 0;
   border: 2px solid transparent;
   border-radius: 4px;
   text-align: left;
@@ -485,11 +499,12 @@ footer {
   cursor: pointer;
   transition: all 0.2s ease;
   color: #333;
-  display: flex; /* Use flexbox for better alignment */
-  align-items: center; /* Center content vertically */
-  justify-content: flex-start; /* Align content to the left */
-  box-sizing: border-box; /* Include padding in the element's total width and height */
-  overflow: hidden; /* Prevent content overflow */
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  box-sizing: border-box;
+  overflow: hidden;
+  background-color: white;
 }
 
 .domain-button::before {
@@ -500,14 +515,15 @@ footer {
   transform: translateY(-50%);
   width: 1rem;
   height: 1rem;
-  border: 2px solid #aaa;
+  border: 2px solid currentColor;
   border-radius: 3px;
   background-color: white;
 }
 
 .domain-button.active {
   border-color: currentColor;
-  background-color: rgba(var(--domain-rgb), 0.1);
+  background-color: rgba(var(--domain-rgb), 0.15);
+  font-weight: bold;
 }
 
 .domain-button.active::before {
@@ -521,27 +537,32 @@ footer {
 
 .domain-button:hover {
   background-color: rgba(var(--domain-rgb), 0.15);
+  border-color: rgba(var(--domain-rgb), 0.5);
 }
 
 /* Domain-specific styles with enhanced contrast */
 .domain-button[data-domain="AI Use and Perceptions"] {
   --domain-rgb: 66, 133, 244;
   color: var(--color-domain-pk12);
+  border-left: 5px solid var(--color-domain-pk12);
 }
 
 .domain-button[data-domain="Guidelines, Training, Policies"] {
   --domain-rgb: 234, 67, 53;
   color: var(--color-domain-guidelines);
+  border-left: 5px solid var(--color-domain-guidelines);
 }
 
 .domain-button[data-domain="Student Performance Data"] {
   --domain-rgb: 52, 168, 83;
   color: var(--color-domain-performance);
+  border-left: 5px solid var(--color-domain-performance);
 }
 
 .domain-button[data-domain="Workforce Trends"] {
   --domain-rgb: 227, 116, 0; /* Darker orange RGB values */
   color: var(--color-domain-workforce);
+  border-left: 5px solid var(--color-domain-workforce);
 }
 
 /* Updated filter chip styles */
@@ -660,7 +681,260 @@ footer {
   width: 100%;
 }
 
-/* Responsive styles */
+/* Responsive grid adjustments */
+@media (min-width: 1200px) {
+  #studies-grid {
+    grid-template-columns: repeat(3, 1fr);
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+}
+
+@media (min-width: 992px) and (max-width: 1199px) {
+  #studies-grid {
+    grid-template-columns: repeat(3, 1fr);
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  #studies-grid {
+    grid-template-columns: repeat(2, 1fr);
+    max-width: 900px;
+    margin: 0 auto;
+  }
+}
+
+@media (max-width: 767px) {
+  #studies-grid {
+    grid-template-columns: 1fr;
+    max-width: 450px;
+    margin: 0 auto;
+  }
+}
+
+/* Sticky filters implementation */
+.filters-wrapper {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background-color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* View Toggle Button */
+.view-toggle-container {
+  display: flex;
+  justify-content: flex-start;
+  margin-top: var(--spacing-sm);
+  min-width: 120px;
+}
+
+.toggle-view-btn {
+  display: flex;
+  align-items: center;
+  background-color: white;
+  border: 2px solid var(--color-primary);
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-sm) var(--spacing-md);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: var(--font-size-sm);
+  color: var(--color-primary);
+}
+
+.toggle-view-btn:hover {
+  background-color: rgba(52, 152, 219, 0.1);
+}
+
+.toggle-view-btn.active {
+  background-color: var(--color-primary);
+  color: var(--color-text-light);
+  border-color: var(--color-primary-dark);
+  font-weight: bold;
+}
+
+.view-icon {
+  margin-right: var(--spacing-sm);
+  font-size: var(--font-size-md);
+}
+
+/* List View Styles */
+.list-view {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.study-row {
+  display: flex;
+  align-items: center;
+  padding: var(--spacing-md);
+  border-bottom: 1px solid var(--color-border);
+  background-color: var(--color-background);
+  transition: background-color 0.2s ease;
+  cursor: pointer;
+}
+
+.study-row:hover {
+  background-color: var(--color-background-light);
+}
+
+.color-indicator {
+  width: 6px;
+  min-width: 6px;
+  align-self: stretch;
+  margin-right: var(--spacing-md);
+  border-radius: var(--border-radius-sm);
+}
+
+/* Color indicators for different domains in list view */
+.domain-pk12 .color-indicator,
+.domain-ai-use-and-perceptions .color-indicator {
+  background-color: var(--color-domain-pk12);
+}
+
+.domain-guidelines .color-indicator,
+.domain-guidelines-training-policies .color-indicator {
+  background-color: var(--color-domain-guidelines);
+}
+
+.domain-performance .color-indicator,
+.domain-student-performance-data .color-indicator {
+  background-color: var(--color-domain-performance);
+}
+
+.domain-workforce .color-indicator,
+.domain-workforce-trends .color-indicator {
+  background-color: var(--color-domain-workforce);
+}
+
+.row-title {
+  flex-grow: 1;
+  font-weight: 500;
+  margin: 0;
+  color: var(--color-text);
+}
+
+.row-action {
+  margin-left: var(--spacing-md);
+}
+
+.view-study-row-btn {
+  background-color: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+  white-space: nowrap;
+}
+
+.view-study-row-btn:hover {
+  background-color: var(--color-primary-dark);
+}
+
+/* Study Modal */
+.study-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.study-modal-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.study-modal {
+  background-color: var(--color-background);
+  border-radius: var(--border-radius-md);
+  max-width: 800px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: var(--spacing-lg);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+.study-modal-close {
+  position: absolute;
+  top: var(--spacing-md);
+  right: var(--spacing-md);
+  background: none;
+  border: none;
+  font-size: var(--font-size-lg);
+  cursor: pointer;
+  color: var(--color-text-muted);
+  transition: color 0.2s ease;
+}
+
+.study-modal-close:hover {
+  color: var(--color-text);
+}
+
+.study-modal-content {
+  margin-top: var(--spacing-md);
+}
+
+/* Additional Modal Styles */
+body.modal-open {
+  overflow: hidden;
+}
+
+.modal-header {
+  margin-bottom: var(--spacing-md);
+}
+
+.modal-title {
+  color: var(--color-heading);
+  margin: 0 0 var(--spacing-md) 0;
+  font-size: var(--font-size-xl);
+}
+
+.modal-meta {
+  margin-bottom: var(--spacing-lg);
+  color: var(--color-text-muted);
+}
+
+.modal-meta p {
+  margin: var(--spacing-xs) 0;
+}
+
+.modal-description {
+  margin-bottom: var(--spacing-lg);
+}
+
+.modal-description h3 {
+  margin-top: 0;
+  color: var(--color-heading);
+}
+
+.modal-actions {
+  margin-top: var(--spacing-lg);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.modal-actions .view-study-btn {
+  padding: var(--spacing-md) var(--spacing-xl);
+  font-size: var(--font-size-md);
+}
+
+/* Original responsive styles */
 @media (max-width: 600px) {
   .studies-counter {
     text-align: center;
@@ -672,12 +946,21 @@ footer {
   }
 }
 
-/* Sticky filters implementation */
-.filters-wrapper {
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  background-color: white;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+/* Add responsive styling for search section */
+@media (max-width: 768px) {
+  .search-section {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .search-container {
+    margin-right: 0;
+    margin-bottom: 1rem;
+    max-width: 100%;
+  }
+  
+  .view-toggle-container {
+    align-self: flex-start;
+  }
 }
 

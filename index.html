@@ -19,6 +19,12 @@
 
         <main>
             <section class="search-section">
+                <div class="view-toggle-container">
+                    <button id="toggle-view-btn" class="toggle-view-btn" title="Toggle between list and card view">
+                        <span class="view-icon">📋</span>
+                        <span class="view-label">List View</span>
+                    </button>
+                </div>
                 <div class="search-container">
                     <input type="text" id="search-input" placeholder="Search studies by title, description, or keywords...">
                     <button id="search-button">Search</button>
@@ -53,6 +59,16 @@
             </div>
         </section>
     </main>
+
+    <!-- Modal for study details -->
+    <div id="study-modal-overlay" class="study-modal-overlay">
+        <div id="study-modal" class="study-modal">
+            <button id="study-modal-close" class="study-modal-close" aria-label="Close">×</button>
+            <div id="study-modal-content" class="study-modal-content">
+                <!-- Content will be dynamically populated -->
+            </div>
+        </div>
+    </div>
 
     <footer>
         <p>&copy; 2025 AI for Education</p>
