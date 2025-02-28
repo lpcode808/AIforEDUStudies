@@ -8,141 +8,158 @@ import AppState from './state.js';
 
 // Fuse.js instance
 let fuseInstance = null;
+// Flag to track if the search engine is ready
+let isSearchEngineReady = false;
+// Promise to track Fuse.js loading
+let fuseLoadingPromise = null;
 
 /**
  * Initialize the search engine with studies data
  * @param {Array} studies - Array of study objects to index
+ * @returns {Promise} - Promise that resolves when search engine is initialized
  */
 function initializeSearchEngine(studies) {
+  console.log('SEARCH: Initializing search engine');
+  
+  // If we already have a loading promise in progress, return it
+  if (fuseLoadingPromise) {
+    console.log('SEARCH: Search engine initialization already in progress');
+    return fuseLoadingPromise;
+  }
+  
   try {
-    console.log('SEARCH: Initializing search engine');
-    
     if (!studies || !Array.isArray(studies) || studies.length === 0) {
       console.error('SEARCH: Cannot initialize search engine - invalid studies data');
-      return;
+      return Promise.reject(new Error('Invalid studies data'));
     }
     
-    // Dynamically import Fuse.js
-    import('https://cdn.jsdelivr.net/npm/fuse.js@6.6.2/dist/fuse.esm.js')
-      .then(module => {
-        const Fuse = module.default;
-        
-        // Configure Fuse with search options
-        const options = {
-          includeScore: true,
-          threshold: 0.3,
-          keys: [
-            { name: 'title', weight: 1.5 },
-            { name: 'description', weight: 1.0 },
-            { name: 'categories', weight: 1.2 },
-            { name: 'organization', weight: 0.8 },
-            { name: 'metadata.subjects', weight: 1.0 }
-          ]
-        };
-        
-        // Create Fuse instance
-        fuseInstance = new Fuse(studies, options);
-        console.log('SEARCH: Search engine successfully initialized');
-      })
-      .catch(error => {
-        console.error('SEARCH: Error loading Fuse.js:', error);
-      });
+    // Create a promise to track the Fuse.js loading process
+    fuseLoadingPromise = new Promise((resolve, reject) => {
+      // Dynamically import Fuse.js
+      import('https://cdn.jsdelivr.net/npm/fuse.js@6.6.2/dist/fuse.esm.js')
+        .then(module => {
+          const Fuse = module.default;
+          
+          // Configure Fuse with search options
+          const options = {
+            includeScore: true,
+            threshold: 0.3,
+            keys: [
+              { name: 'title', weight: 1.5 },
+              { name: 'description', weight: 1.0 },
+              { name: 'categories', weight: 1.2 },
+              { name: 'organization', weight: 0.8 },
+              { name: 'metadata.subjects', weight: 1.0 }
+            ]
+          };
+          
+          try {
+            // Create Fuse instance
+            fuseInstance = new Fuse(studies, options);
+            isSearchEngineReady = true;
+            console.log('SEARCH: Search engine successfully initialized');
+            resolve();
+          } catch (err) {
+            console.error('SEARCH: Error creating Fuse instance:', err);
+            reject(err);
+          }
+        })
+        .catch(error => {
+          console.error('SEARCH: Error loading Fuse.js:', error);
+          fuseLoadingPromise = null; // Allow retrying the initialization
+          reject(error);
+        });
+    });
+    
+    return fuseLoadingPromise;
   } catch (error) {
-    console.error('SEARCH: Error initializing search engine:', error);
+    console.error('SEARCH: Error in initializeSearchEngine:', error);
+    return Promise.reject(error);
   }
 }
 
 /**
- * Search for studies matching the query
- * @param {Array} studies - The studies to search within
+ * Perform a search using the Fuse.js search engine
  * @param {string} query - The search query
- * @returns {Array} Filtered array of studies matching the query
+ * @param {Array} studies - The full studies array to search if Fuse isn't ready
+ * @returns {Array} - Array of search results
  */
-function search(studies, query) {
+async function search(query, studies = []) {
   try {
-    if (!query || typeof query !== 'string' || query.trim() === '') {
-      return studies;
-    }
-    
-    query = query.trim();
     console.log(`SEARCH: Searching for "${query}"`);
     
-    // If Fuse.js failed to load, fallback to basic search
-    if (!fuseInstance) {
-      console.warn('SEARCH: Fuse.js not available, using basic search');
-      return basicSearch(studies, query);
+    // If query is empty, return all studies
+    if (!query || query.trim() === '') {
+      console.log('SEARCH: Empty query, returning all studies');
+      return studies.length > 0 ? studies : AppState.getStudies() || [];
     }
     
-    // Perform search with Fuse.js
-    const results = fuseInstance.search(query);
-    console.log(`SEARCH: Found ${results.length} results with Fuse.js`);
+    // Check if search engine is ready
+    if (!isSearchEngineReady || !fuseInstance) {
+      console.log('SEARCH: Search engine not ready, waiting for initialization');
+      
+      // If we have a loading promise, wait for it
+      if (fuseLoadingPromise) {
+        try {
+          await fuseLoadingPromise;
+          console.log('SEARCH: Search engine loaded, proceeding with search');
+        } catch (error) {
+          console.error('SEARCH: Failed to initialize search engine:', error);
+          // Fall back to simple filtering if available
+          return performSimpleSearch(query, studies);
+        }
+      } else {
+        console.warn('SEARCH: No search engine loading process found');
+        return performSimpleSearch(query, studies);
+      }
+    }
     
-    // Extract the items from results and return
-    return results.map(result => result.item);
+    // At this point, fuseInstance should be available
+    if (fuseInstance) {
+      const results = fuseInstance.search(query);
+      console.log(`SEARCH: Found ${results.length} results`);
+      
+      // Map results to actual study objects (Fuse returns objects with item property)
+      return results.map(result => result.item);
+    } else {
+      console.error('SEARCH: Fuse instance still not available after waiting');
+      return performSimpleSearch(query, studies);
+    }
   } catch (error) {
     console.error('SEARCH: Error performing search:', error);
-    return studies; // Return original studies on error
+    // Fall back to simple filtering
+    return performSimpleSearch(query, studies);
   }
 }
 
 /**
- * Basic search fallback when Fuse.js is not available
- * @param {Array} studies - The studies to search within
+ * Perform a simple search as fallback when Fuse.js is not available
  * @param {string} query - The search query
- * @returns {Array} Filtered array of studies matching the query
+ * @param {Array} studies - The studies to search
+ * @returns {Array} - Filtered studies
  */
-function basicSearch(studies, query) {
-  try {
-    if (!query || !studies || !Array.isArray(studies)) {
-      return studies;
-    }
-    
-    // Convert query to lowercase for case-insensitive matching
-    const lowerQuery = query.toLowerCase();
-    
-    // Filter studies by query
-    return studies.filter(study => {
-      if (!study) return false;
-      
-      // Check title
-      if (study.title && study.title.toLowerCase().includes(lowerQuery)) {
-        return true;
-      }
-      
-      // Check description
-      if (study.description && study.description.toLowerCase().includes(lowerQuery)) {
-        return true;
-      }
-      
-      // Check organization
-      if (study.organization && study.organization.toLowerCase().includes(lowerQuery)) {
-        return true;
-      }
-      
-      // Check categories
-      if (Array.isArray(study.categories)) {
-        for (const category of study.categories) {
-          if (category && category.toLowerCase().includes(lowerQuery)) {
-            return true;
-          }
-        }
-      }
-      
-      // Check subjects
-      if (study.metadata && Array.isArray(study.metadata.subjects)) {
-        for (const subject of study.metadata.subjects) {
-          if (subject && subject.toLowerCase().includes(lowerQuery)) {
-            return true;
-          }
-        }
-      }
-      
-      return false;
-    });
-  } catch (error) {
-    console.error('SEARCH: Error in basic search:', error);
-    return studies; // Return original studies on error
+function performSimpleSearch(query, studies = []) {
+  console.log('SEARCH: Performing simple fallback search');
+  
+  // Get studies from parameter or AppState
+  const studiesData = studies.length > 0 ? studies : AppState.getStudies() || [];
+  
+  if (!query || query.trim() === '') {
+    return studiesData;
   }
+  
+  // Simple case-insensitive search across multiple fields
+  const lowercaseQuery = query.toLowerCase();
+  return studiesData.filter(study => {
+    return (
+      (study.title && study.title.toLowerCase().includes(lowercaseQuery)) ||
+      (study.description && study.description.toLowerCase().includes(lowercaseQuery)) ||
+      (study.organization && study.organization.toLowerCase().includes(lowercaseQuery)) ||
+      (Array.isArray(study.categories) && study.categories.some(cat => 
+        cat.toLowerCase().includes(lowercaseQuery)
+      ))
+    );
+  });
 }
 
 /**
@@ -286,7 +303,7 @@ function getFilteredResults() {
   // First search - with defensive check
   let results = [];
   try {
-    results = search(studies, searchQuery);
+    results = search(searchQuery, studies);
   } catch (error) {
     console.error('Error during search:', error);
     // Fall back to all studies if search fails
@@ -302,10 +319,11 @@ function getFilteredResults() {
   }
 }
 
-// Single export statement - only one place where exports happen
-export { 
+// Export functions
+export {
   initializeSearchEngine,
   search,
   filterStudies,
-  getFilteredResults
+  getFilteredResults,
+  isSearchEngineReady
 }; 
