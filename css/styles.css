@@ -403,10 +403,13 @@ a:hover {
   border-radius: 4px;
   font-size: 0.9rem;
   transition: all 0.2s;
+  display: inline-block;
+  border: none;
+  cursor: pointer;
 }
 
 .view-study-btn:hover {
-  background-color: var(--color-primary);
+  background-color: var(--color-primary-dark);
   color: white;
   font-weight: bold;
   text-decoration: none;
@@ -857,19 +860,11 @@ footer {
   margin-left: var(--spacing-md);
 }
 
-.view-study-row-btn {
-  background-color: var(--color-primary);
-  color: white;
-  border: none;
-  border-radius: var(--border-radius-sm);
-  padding: var(--spacing-sm) var(--spacing-md);
-  cursor: pointer;
-  font-size: var(--font-size-sm);
+/* Custom styling for view-study-btn in the list view */
+.study-row .view-study-btn {
   white-space: nowrap;
-}
-
-.view-study-row-btn:hover {
-  background-color: var(--color-primary-dark);
+  font-size: var(--font-size-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
 }
 
 /* Study Modal */
