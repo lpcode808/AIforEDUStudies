@@ -700,18 +700,44 @@ footer {
   gap: 20px !important;
   width: 100% !important;
   margin-top: 20px !important;
+  max-width: 100% !important; /* Ensure grid doesn't exceed container width */
+  box-sizing: border-box !important; /* Include padding in width calculation */
 }
 
-/* Responsive grid adjustments */
+/* Make sure the cards inside the grid take full space */
+#studies-grid .study-card {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Ensure the results container itself is full width */
+#results-container {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Responsive grid adjustments - with increased specificity */
 @media (min-width: 768px) and (max-width: 1199px) {
   #studies-grid {
     grid-template-columns: repeat(2, 1fr) !important;
+    width: 100% !important;
   }
 }
 
 @media (min-width: 1200px) {
   #studies-grid {
     grid-template-columns: repeat(3, 1fr) !important;
+    width: 100% !important;
+  }
+}
+
+/* Ensure full width on mobile without inheriting any other grid styles */
+@media (max-width: 767px) {
+  #studies-grid {
+    grid-template-columns: 1fr !important;
+    width: 100% !important;
   }
 }
 

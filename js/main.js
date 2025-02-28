@@ -27,8 +27,22 @@ let appInitialized = false;
 async function initSearch() {
   try {
     console.log('APP: Initializing search engine');
-    // This is a placeholder for the actual search initialization
-    // The real implementation might depend on other modules
+    
+    // Get the studies data from AppState
+    const studies = AppState.getStudies();
+    
+    if (!studies || !Array.isArray(studies) || studies.length === 0) {
+      console.warn('APP: No studies data available for search engine initialization');
+      return Promise.resolve();
+    }
+    
+    // Import the search engine module
+    const { initializeSearchEngine } = await import('./modules/search-engine.js');
+    
+    // Initialize the search engine with the studies data
+    initializeSearchEngine(studies);
+    console.log(`APP: Search engine initialized with ${studies.length} studies`);
+    
     return Promise.resolve();
   } catch (error) {
     console.error('APP: Error initializing search engine:', error);
@@ -46,6 +60,21 @@ async function initApp() {
     // Set up event listeners
     console.log('APP: Setting up event listeners');
     setupEventListeners();
+    
+    // Add explicit search button listener
+    const searchButton = document.getElementById('search-button');
+    const searchInput = document.getElementById('search-input');
+    if (searchButton && searchInput) {
+      searchButton.addEventListener('click', () => {
+        console.log('APP: Search button clicked');
+        const query = searchInput.value.trim();
+        AppState.setSearchQuery(query);
+        updateResults();
+      });
+      console.log('APP: Search button event listener added');
+    } else {
+      console.warn('APP: Search button or input not found in DOM');
+    }
     
     // Initialize search implementation
     console.log('APP: Initializing search implementation');
