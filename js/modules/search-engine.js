@@ -146,7 +146,7 @@ function basicSearch(studies, query) {
 }
 
 /**
- * Filter studies based on active filters
+ * Filter studies based on active filters in AppState
  * @param {Array} studies - The studies to filter
  * @returns {Array} Filtered array of studies
  */
@@ -157,30 +157,32 @@ function filterStudies(studies) {
     return [];
   }
   
-  // Defensive check for AppState and filters
-  if (!AppState || !AppState.filters) {
-    console.error('AppState or filters undefined in filterStudies');
-    return studies;
-  }
+  console.log(`Filtering ${studies.length} studies`);
   
-  const { categories } = AppState.filters;
-  
-  // If categories is not a Set, just return the studies
-  if (!(categories instanceof Set)) {
-    console.warn('Categories is not a Set in filterStudies');
+  // Defensive check for AppState
+  if (!AppState) {
+    console.error('AppState is undefined in filterStudies');
     return studies;
   }
   
   try {
+    // Get category filters directly from AppState
+    const categoryFilters = AppState.getCategoryFilters();
+    console.log(`Using ${categoryFilters.length} category filters from AppState`);
+    
+    // If no categories are selected, show all studies
+    if (!categoryFilters || categoryFilters.length === 0) {
+      console.log('No category filters active, returning all studies');
+      return studies;
+    }
+    
+    // Convert array to Set for faster lookups
+    const categories = new Set(categoryFilters);
+    
     // Apply filtering
     return studies.filter(study => {
       // Skip null/undefined studies
       if (!study) return false;
-      
-      // If no categories are selected, show all studies
-      if (categories.size === 0) {
-        return true;
-      }
       
       // Extract categories from study
       let studyCategories = [];
@@ -192,33 +194,52 @@ function filterStudies(studies) {
       
       // Show study only if it belongs to at least one of the selected categories
       const hasSelectedCategory = studyCategories.some(studyCategory => {
+        // For debugging
+        console.log('Checking study category:', studyCategory);
+        
         // Exact match
         if (categories.has(studyCategory)) {
+          console.log('Exact match found for:', studyCategory);
           return true;
         }
         
         // Check for matches between button categories and actual data categories
         for (const filterCategory of categories) {
-          // For 'AI Use and Perceptions' button - match with the actual CSV data category
+          console.log('Comparing filter:', filterCategory, 'with study category:', studyCategory);
+          
+          // For 'AI Use and Perceptions' button
           if (filterCategory === 'AI Use and Perceptions' && 
-              (studyCategory === 'Current AI Use and Perceptions in PK 12 & HigherEd')) {
+              (studyCategory === 'Current AI Use and Perceptions in PK 12 & HigherEd' ||
+               studyCategory.includes('AI Use') ||
+               studyCategory.includes('AI Perceptions'))) {
+            console.log('Matched AI Use and Perceptions');
             return true;
           }
           
-          // For 'Guidelines, Training, Policies' button - match with the actual CSV data category
+          // For 'Guidelines, Training, Policies' button
           if (filterCategory === 'Guidelines, Training, Policies' && 
-              studyCategory.startsWith('Current State of Guidelines')) {
+              (studyCategory === 'Current State of Guidelines, Training, and Policies' ||
+               studyCategory.includes('Guidelines') ||
+               studyCategory.includes('Training') ||
+               studyCategory.includes('Policies'))) {
+            console.log('Matched Guidelines category');
             return true;
           }
           
-          // For other categories, use exact matches
+          // For 'Student Performance Data' button
           if (filterCategory === 'Student Performance Data' && 
-              studyCategory === 'Student Performance Data') {
+              (studyCategory === 'Student Performance Data' ||
+               studyCategory.includes('Performance') ||
+               studyCategory.includes('Student Data'))) {
+            console.log('Matched Performance Data category');
             return true;
           }
           
+          // For 'Workforce Trends' button
           if (filterCategory === 'Workforce Trends' && 
-              studyCategory === 'Workforce Trends') {
+              (studyCategory === 'Workforce Trends' ||
+               studyCategory.includes('Workforce'))) {
+            console.log('Matched Workforce category');
             return true;
           }
         }
@@ -226,34 +247,7 @@ function filterStudies(studies) {
         return false;
       });
       
-      if (!hasSelectedCategory) return false;
-      
-      // Filter by subject metadata
-      if (AppState.filters.subjects && AppState.filters.subjects.size > 0) {
-        const studyMetadata = study.metadata || {};
-        const subjects = studyMetadata.subjects;
-        
-        if (!subjects) return false;
-        
-        // Handle array values or comma-separated subjects
-        let subjectValues = [];
-        if (Array.isArray(subjects)) {
-          subjectValues = subjects;
-        } else if (typeof subjects === 'string') {
-          subjectValues = subjects.split(',').map(s => s.trim());
-        } else {
-          subjectValues = [subjects];
-        }
-        
-        // Check if any of the study subjects match the selected subjects
-        const hasSubject = subjectValues.some(val => 
-          AppState.filters.subjects.has(val)
-        );
-        
-        if (!hasSubject) return false;
-      }
-      
-      return true;
+      return hasSelectedCategory;
     });
   } catch (error) {
     console.error('Error during filtering:', error);
@@ -272,26 +266,31 @@ function getFilteredResults() {
     return [];
   }
   
-  // Get the search query from AppState with fallback
-  const searchQuery = AppState.searchQuery || '';
+  // Get search query using the getter method
+  const searchQuery = AppState.getSearchQuery ? AppState.getSearchQuery() : '';
+  
+  // Get studies using the getter method
+  const studies = AppState.getStudies ? AppState.getStudies() : [];
+  
+  // Get category filters using the getter method
+  const categoryFilters = AppState.getCategoryFilters ? AppState.getCategoryFilters() : [];
   
   // Log the current state for debugging
   console.log('getFilteredResults - current state:', {
     searchQuery,
-    hasStudies: !!AppState.studies,
-    studiesLength: AppState.studies ? AppState.studies.length : 0,
-    hasFilters: !!AppState.filters,
-    categories: AppState.filters ? Array.from(AppState.filters.categories) : []
+    hasStudies: !!studies,
+    studiesLength: studies ? studies.length : 0,
+    categoryFilters
   });
   
   // First search - with defensive check
   let results = [];
   try {
-    results = search(AppState.studies, searchQuery);
+    results = search(studies, searchQuery);
   } catch (error) {
     console.error('Error during search:', error);
     // Fall back to all studies if search fails
-    results = AppState.studies || [];
+    results = studies || [];
   }
   
   // Then filter - with defensive check

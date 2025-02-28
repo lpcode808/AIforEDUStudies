@@ -9,41 +9,51 @@ const DATA_URL = './data/studies.csv';
 
 /**
  * Load studies data from the CSV file
- * @returns {Promise<Array>} Promise resolving to an array of study objects
+ * @returns {Promise<Array>} Promise resolving to array of study objects
  */
 export async function loadStudiesData() {
   try {
-    console.log('DATALOADER: Loading studies data from', DATA_URL);
+    console.log('DataLoader: Beginning to load studies data');
+    // Store the fetch start time for performance metrics
+    const fetchStart = performance.now();
     
-    // Fetch the data
-    const response = await fetch(DATA_URL);
+    // Load studies from CSV
+    const response = await fetch('data/studies.csv');
     
-    // Check if the request was successful
     if (!response.ok) {
-      throw new Error(`Failed to load data: ${response.status} ${response.statusText}`);
+      console.error(`DataLoader: Failed to fetch studies.csv: ${response.status} ${response.statusText}`);
+      throw new Error(`Failed to fetch studies data: ${response.status} ${response.statusText}`);
     }
     
-    // Get the CSV text
+    const fetchEnd = performance.now();
+    console.log(`DataLoader: Fetched studies.csv in ${(fetchEnd - fetchStart).toFixed(2)}ms`);
+    
+    // Get text content
     const csvText = await response.text();
+    console.log(`DataLoader: Received CSV data of length: ${csvText.length} characters`);
+    console.log(`DataLoader: CSV preview: ${csvText.substring(0, 100)}...`);
     
-    // Parse the CSV data
-    const data = parseCSV(csvText);
+    // Parse CSV
+    const parseStart = performance.now();
+    const items = await parseCSV(csvText);
+    const parseEnd = performance.now();
     
-    // Ensure data is properly structured
-    if (!data || !Array.isArray(data)) {
-      console.error('DATALOADER: Invalid data format received');
-      return [];
-    }
+    console.log(`DataLoader: Parsed ${items.length} items from CSV in ${(parseEnd - parseStart).toFixed(2)}ms`);
+    console.log(`DataLoader: First item sample:`, items.length > 0 ? items[0] : 'No items found');
     
-    console.log(`DATALOADER: Successfully loaded ${data.length} studies`);
+    // Convert to normalized studies
+    const normalizeStart = performance.now();
+    const studies = normalizeStudies(items);
+    const normalizeEnd = performance.now();
     
-    // Perform preliminary data validation and cleanup
-    const validatedData = performInitialValidation(data);
+    console.log(`DataLoader: Normalized ${studies.length} studies in ${(normalizeEnd - normalizeStart).toFixed(2)}ms`);
+    console.log(`DataLoader: First study sample:`, studies.length > 0 ? studies[0] : 'No studies found');
     
-    return validatedData;
+    // Return the studies
+    return studies;
   } catch (error) {
-    console.error('DATALOADER: Error loading studies data:', error);
-    throw error; // Re-throw to allow retry logic in the bootstrap module
+    console.error('DataLoader: Error loading studies data:', error);
+    throw new Error(`Failed to load studies data: ${error.message}`);
   }
 }
 
@@ -177,72 +187,105 @@ function normalizeStudies(studies) {
  * @returns {Array} Array of objects
  */
 function parseCSV(text) {
-  const lines = text.split('\n');
-  if (lines.length < 2) {
-    console.error('CSV has fewer than 2 lines, cannot parse headers and data');
-    return [];
-  }
-  
-  console.log(`CSV has ${lines.length} lines`);
-  
-  // Extract headers - skip the first empty column
-  const headers = lines[0].split(',').map(h => h.trim()).filter((h, i) => i > 0 || h.length > 0);
-  console.log('CSV Headers:', headers);
-  
-  // Process data lines
-  const results = lines.slice(1)
-    .filter(line => line.trim())
-    .map((line, index) => {
+  try {
+    if (!text || typeof text !== 'string') {
+      console.error('CSV text is invalid:', text);
+      return [];
+    }
+    
+    const lines = text.split('\n');
+    if (lines.length < 2) {
+      console.error('CSV has fewer than 2 lines, cannot parse headers and data');
+      return [];
+    }
+    
+    console.log(`DataLoader: CSV has ${lines.length} lines`);
+    
+    // Extract headers from the first line
+    const headerLine = lines[0];
+    const headers = headerLine.split(',').map(h => h.trim());
+    console.log('DataLoader: CSV Headers:', headers);
+    console.log('DataLoader: First header line:', headerLine);
+    
+    // Process data lines with more robust parsing
+    const results = [];
+    let successCount = 0;
+    let errorCount = 0;
+    
+    for (let i = 1; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (!line) continue; // Skip empty lines
+      
       try {
         // Handle commas within quoted fields
-        const fields = [];
-        let currentField = '';
+        const values = [];
+        let currentValue = '';
         let inQuotes = false;
         
-        for (let i = 0; i < line.length; i++) {
-          const char = line[i];
+        for (let j = 0; j < line.length; j++) {
+          const char = line[j];
           
           if (char === '"') {
+            // Toggle quote state - handles quotes within quoted fields
             inQuotes = !inQuotes;
+            // Add the quote character to preserve it
+            currentValue += char;
           } else if (char === ',' && !inQuotes) {
-            fields.push(currentField);
-            currentField = '';
+            // Only treat commas as separators when not in quotes
+            values.push(currentValue);
+            currentValue = '';
           } else {
-            currentField += char;
+            currentValue += char;
           }
         }
         
-        // Push the last field
-        fields.push(currentField);
+        // Don't forget the last value
+        values.push(currentValue);
         
-        // Skip the first field if it's the marker column
-        const dataFields = fields.slice(1);
-        
-        // Create object from fields and headers
+        // Create object from values and headers
         const obj = {};
         
-        headers.forEach((header, i) => {
-          // Skip if we don't have this field
-          if (i >= dataFields.length) return;
-          
-          let value = dataFields[i].trim();
-          
-          // Remove surrounding quotes if present
-          if (value.startsWith('"') && value.endsWith('"')) {
-            value = value.substring(1, value.length - 1);
+        // Map each header to its corresponding value
+        headers.forEach((header, index) => {
+          if (index < values.length) {
+            let value = values[index].trim();
+            
+            // Remove surrounding quotes if present
+            if (value.startsWith('"') && value.endsWith('"')) {
+              value = value.substring(1, value.length - 1);
+            }
+            
+            obj[header] = value;
           }
-          
-          obj[header] = value;
         });
         
-        return obj;
-      } catch (error) {
-        console.error(`Error parsing line ${index + 1}: ${line}`, error);
-        return null;
+        // Log sample for debugging
+        if (i === 1) {
+          console.log('DataLoader: First data row parsed:', obj);
+        }
+        
+        results.push(obj);
+        successCount++;
+      } catch (lineError) {
+        console.error(`DataLoader: Error parsing line ${i}:`, lineError);
+        errorCount++;
       }
-    })
-    .filter(item => item !== null);
-  
-  console.log(`Successfully parsed ${results.length} items from CSV`);
-  return results;
-} 
+    }
+    
+    console.log(`DataLoader: Successfully parsed ${successCount} items from CSV (${errorCount} errors)`);
+    
+    // Log sample of parsed data
+    if (results.length > 0) {
+      console.log('DataLoader: First item parsed:', results[0]);
+      console.log('DataLoader: First item categories:', results[0].categories);
+    }
+    
+    return results;
+  } catch (error) {
+    console.error('DataLoader: Fatal error parsing CSV:', error);
+    return [];
+  }
+}
+
+// Export additional functions needed by other modules
+export { normalizeStudies, parseCSV }; 
