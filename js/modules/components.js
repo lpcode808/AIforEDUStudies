@@ -468,18 +468,31 @@ function getDomainClass(categories) {
   // Get the first category
   const category = categories[0];
   
-  // Map categories to domain classes
-  if (category === 'AI Use and Perceptions') {
+  // Map categories to domain classes with more comprehensive matching
+  // This handles both the button filter names and the actual data category names
+  if (category === 'AI Use and Perceptions' || 
+      category === 'Current AI Use and Perceptions in PK 12 & HigherEd' ||
+      category.includes('AI Use') || 
+      category.includes('AI Perceptions')) {
     return 'domain-pk12';
-  } else if (category === 'Guidelines, Training, Policies') {
+  } else if (category === 'Guidelines, Training, Policies' || 
+             category === 'Current State of Guidelines, Training, and Policies' ||
+             category.includes('Guidelines') || 
+             category.includes('Training') || 
+             category.includes('Policies')) {
     return 'domain-guidelines';
-  } else if (category === 'Student Performance Data') {
+  } else if (category === 'Student Performance Data' ||
+             category.includes('Performance') ||
+             category.includes('Student Data')) {
     return 'domain-performance';
-  } else if (category === 'Workforce Trends') {
+  } else if (category === 'Workforce Trends' ||
+             category.includes('Workforce')) {
     return 'domain-workforce';
   }
   
-  return '';
+  // Add domain- prefix to the category if no match found
+  // This provides a fallback for any category that doesn't match the explicit mappings
+  return 'domain-' + category.toLowerCase().replace(/\s+/g, '-').replace(/[&,]/g, '');
 }
 
 /**
