@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fixed Search Engine Module Test</title>
+</head>
+<body>
+    <h1>Fixed Search Engine Module Test</h1>
+    <div id="results"></div>
+
+    <script type="module">
+        import { initializeSearchEngine, search, getFilteredResults } from './js/modules/search-engine-fixed.js';
+        
+        document.getElementById('results').textContent = 'Fixed module imported successfully!';
+        
+        // Basic test
+        try {
+            const testStudies = [
+                { id: 1, title: "Test Study 1", categories: ["AI", "Education"] },
+                { id: 2, title: "Test Study 2", categories: ["Research"] }
+            ];
+            
+            // Initialize search engine
+            initializeSearchEngine(testStudies);
+            
+            // Log successful initialization
+            console.log('Test completed without errors');
+        } catch (error) {
+            console.error('Test error:', error);
+            document.getElementById('results').textContent = 'Error: ' + error.message;
+        }
+    </script>
+</body>
+</html> 

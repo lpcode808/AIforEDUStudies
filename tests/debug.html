@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GenAI Studies Explorer - Debug</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .debug-section {
+            margin: 20px;
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .debug-button {
+            margin: 5px;
+            padding: 8px 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .debug-output {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            min-height: 100px;
+            max-height: 400px;
+            overflow: auto;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>GenAI Research Explorer - Debug Page</h1>
+    </header>
+
+    <main>
+        <div class="debug-section">
+            <h2>Data Loading Test</h2>
+            <button id="test-data-loading" class="debug-button">Test Data Loading</button>
+            <div id="data-loading-output" class="debug-output">Results will appear here...</div>
+        </div>
+
+        <div class="debug-section">
+            <h2>Search Engine Test</h2>
+            <input type="text" id="debug-search-input" placeholder="Enter search term...">
+            <button id="test-search" class="debug-button">Test Search</button>
+            <div id="search-output" class="debug-output">Results will appear here...</div>
+        </div>
+
+        <div class="debug-section">
+            <h2>Filter Test</h2>
+            <button id="test-categories" class="debug-button">Test Categories Extraction</button>
+            <button id="test-subjects" class="debug-button">Test Subjects Extraction</button>
+            <div id="filter-output" class="debug-output">Results will appear here...</div>
+        </div>
+
+        <div class="debug-section">
+            <h2>Application State</h2>
+            <button id="check-app-state" class="debug-button">Check App State</button>
+            <div id="state-output" class="debug-output">Results will appear here...</div>
+        </div>
+    </main>
+
+    <script type="module">
+        import AppState from './js/modules/state.js';
+        import { loadStudies } from './js/modules/data-loader.js';
+        import { search } from './js/modules/search-engine.js';
+        
+        // Data Loading Test
+        document.getElementById('test-data-loading').addEventListener('click', async () => {
+            const output = document.getElementById('data-loading-output');
+            output.innerHTML = 'Loading data...';
+            
+            try {
+                const studies = await loadStudies();
+                output.innerHTML = `<p>Successfully loaded ${studies.length} studies.</p>`;
+                output.innerHTML += `<pre>${JSON.stringify(studies[0], null, 2)}</pre>`;
+            } catch (error) {
+                output.innerHTML = `<p>Error loading studies: ${error.message}</p>`;
+                console.error(error);
+            }
+        });
+        
+        // Search Test
+        document.getElementById('test-search').addEventListener('click', async () => {
+            const output = document.getElementById('search-output');
+            const searchTerm = document.getElementById('debug-search-input').value;
+            
+            if (!searchTerm) {
+                output.innerHTML = 'Please enter a search term';
+                return;
+            }
+            
+            output.innerHTML = `Searching for "${searchTerm}"...`;
+            
+            try {
+                const studies = await loadStudies();
+                const results = search(studies, searchTerm);
+                output.innerHTML = `<p>Found ${results.length} results for "${searchTerm}"</p>`;
+                if (results.length > 0) {
+                    output.innerHTML += `<pre>${JSON.stringify(results[0], null, 2)}</pre>`;
+                }
+            } catch (error) {
+                output.innerHTML = `<p>Error performing search: ${error.message}</p>`;
+                console.error(error);
+            }
+        });
+        
+        // Categories Test
+        document.getElementById('test-categories').addEventListener('click', async () => {
+            const output = document.getElementById('filter-output');
+            output.innerHTML = 'Extracting categories...';
+            
+            try {
+                const studies = await loadStudies();
+                const categories = new Set();
+                
+                studies.forEach(study => {
+                    if (study.categories && Array.isArray(study.categories)) {
+                        study.categories.forEach(cat => {
+                            if (cat) categories.add(cat);
+                        });
+                    }
+                });
+                
+                output.innerHTML = `<p>Found ${categories.size} unique categories:</p>`;
+                output.innerHTML += `<pre>${JSON.stringify(Array.from(categories), null, 2)}</pre>`;
+            } catch (error) {
+                output.innerHTML = `<p>Error extracting categories: ${error.message}</p>`;
+                console.error(error);
+            }
+        });
+        
+        // Subjects Test
+        document.getElementById('test-subjects').addEventListener('click', async () => {
+            const output = document.getElementById('filter-output');
+            output.innerHTML = 'Extracting subjects...';
+            
+            try {
+                const studies = await loadStudies();
+                const subjects = new Set();
+                
+                studies.forEach(study => {
+                    if (study.metadata && study.metadata.subjects && Array.isArray(study.metadata.subjects)) {
+                        study.metadata.subjects.forEach(subject => {
+                            if (subject) subjects.add(subject);
+                        });
+                    }
+                });
+                
+                output.innerHTML = `<p>Found ${subjects.size} unique subjects:</p>`;
+                output.innerHTML += `<pre>${JSON.stringify(Array.from(subjects), null, 2)}</pre>`;
+            } catch (error) {
+                output.innerHTML = `<p>Error extracting subjects: ${error.message}</p>`;
+                console.error(error);
+            }
+        });
+        
+        // App State Test
+        document.getElementById('check-app-state').addEventListener('click', () => {
+            const output = document.getElementById('state-output');
+            
+            try {
+                const isInitialized = window.isAppInitialized ? window.isAppInitialized() : false;
+                output.innerHTML = `<p>App initialized: ${isInitialized}</p>`;
+                
+                const studies = AppState.getStudies();
+                output.innerHTML += `<p>Studies in AppState: ${studies ? studies.length : 0}</p>`;
+                
+                const activeFilters = AppState.getActiveFilters();
+                output.innerHTML += `<p>Active filters: ${JSON.stringify(activeFilters)}</p>`;
+            } catch (error) {
+                output.innerHTML = `<p>Error checking app state: ${error.message}</p>`;
+                console.error(error);
+            }
+        });
+    </script>
+</body>
+</html> 

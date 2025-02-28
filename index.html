@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GenAI Education Research Explorer</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <!-- Load modules using ES modules with cache busting for latest version -->
+    <script type="module" src="js/main.js?v=3"></script>
+</head>
+<body>
+    <!-- Add the filters-wrapper to make these sections sticky -->
+    <div class="filters-wrapper">
+        <header>
+            <h1>GenAI Research Explorer</h1>
+            <p>Exploring studies on Generative AI in education</p>
+        </header>
+
+        <main>
+            <section class="search-section">
+                <div class="search-container">
+                    <input type="text" id="search-input" placeholder="Search studies by title, description, or keywords...">
+                    <button id="search-button">Search</button>
+                </div>
+            </section>
+
+            <section class="filters-section">
+                <div class="filter-container">
+                    <div class="filter-group">
+                        <div id="category-filters" class="filter-options">
+                            <!-- Category filters will be populated by JavaScript -->
+                        </div>
+                    </div>
+                    <div id="studies-counter-container"></div>
+
+                    <button id="clear-filters" class="clear-filters-button">Clear All Filters</button>
+                </div>
+            </section>
+        </div>
+        <!-- End of filters-wrapper -->
+        
+        <section id="active-filters-section">
+            <div id="active-filters" class="active-filters hidden">
+                <!-- Active filters will appear here -->
+            </div>
+        </section>
+
+        <section class="results-section">
+            <div id="results-container">
+                <!-- Results will be populated by JavaScript -->
+                <p class="placeholder-text">Loading studies...</p>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2023 GenAI Education Research Explorer</p>
+    </footer>
+</body>
+</html> 

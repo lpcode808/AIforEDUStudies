@@ -1,0 +1,20 @@
+venv/
+node_modules/
+__pycache__/
+*.py[cod]
+*$py.class
+.DS_Store
+.env
+.venv
+env/
+ENV/
+*.log
+*.swp
+*.swo
+.idea/
+.vscode/
+
+# Large data files
+data/Studies\ Related\ to\ Generative\ AI\ in\ Education\ —\ AI\ for\ Education_files/
+data/Studies\ Related\ to\ Generative\ AI\ in\ Education\ —\ AI\ for\ Education.html
+data/studies.csv.bak 
