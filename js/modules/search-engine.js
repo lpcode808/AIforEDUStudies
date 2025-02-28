@@ -191,9 +191,40 @@ function filterStudies(studies) {
       }
       
       // Show study only if it belongs to at least one of the selected categories
-      const hasSelectedCategory = studyCategories.some(category => 
-        categories.has(category)
-      );
+      const hasSelectedCategory = studyCategories.some(studyCategory => {
+        // Exact match
+        if (categories.has(studyCategory)) {
+          return true;
+        }
+        
+        // Check for matches between button categories and actual data categories
+        for (const filterCategory of categories) {
+          // For 'AI Use and Perceptions' button - match with the actual CSV data category
+          if (filterCategory === 'AI Use and Perceptions' && 
+              (studyCategory === 'Current AI Use and Perceptions in PK 12 & HigherEd')) {
+            return true;
+          }
+          
+          // For 'Guidelines, Training, Policies' button - match with the actual CSV data category
+          if (filterCategory === 'Guidelines, Training, Policies' && 
+              studyCategory.startsWith('Current State of Guidelines')) {
+            return true;
+          }
+          
+          // For other categories, use exact matches
+          if (filterCategory === 'Student Performance Data' && 
+              studyCategory === 'Student Performance Data') {
+            return true;
+          }
+          
+          if (filterCategory === 'Workforce Trends' && 
+              studyCategory === 'Workforce Trends') {
+            return true;
+          }
+        }
+        
+        return false;
+      });
       
       if (!hasSelectedCategory) return false;
       
