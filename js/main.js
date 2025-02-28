@@ -11,7 +11,8 @@ import {
   setupEventListeners, 
   displayStudies, 
   populateCategoryFilters, 
-  loadFiltersFromURL 
+  loadFiltersFromURL,
+  updateViewMode
 } from './modules/ui-handlers.js';
 
 // Keep track of whether initialization is complete
@@ -55,6 +56,22 @@ async function initApp() {
     // Set up event listeners
     console.log('INITAPP: Setting up event listeners');
     setupEventListeners();
+    
+    // Initialize view toggle button state
+    console.log('INITAPP: Initializing view toggle button');
+    const toggleViewBtn = document.getElementById('toggle-view-btn');
+    if (toggleViewBtn) {
+      const viewMode = AppState.getViewMode();
+      const iconSpan = toggleViewBtn.querySelector('.view-icon');
+      const labelSpan = toggleViewBtn.querySelector('.view-label');
+      
+      // Set initial state based on default view mode
+      if (viewMode === 'list') {
+        toggleViewBtn.classList.add('active');
+        if (iconSpan) iconSpan.textContent = '🔲';
+        if (labelSpan) labelSpan.textContent = 'Card View';
+      }
+    }
     
     // Get the predefined domains/categories
     console.log('INITAPP: Setting up domain categories');

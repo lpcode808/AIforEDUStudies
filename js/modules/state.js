@@ -17,6 +17,9 @@ class AppState {
     this._subjectFilters = [];
     this._searchQuery = '';
     
+    // UI state
+    this._viewMode = 'card'; // 'card' or 'list'
+    
     // State flags
     this._initialized = false;
     this._loading = false;
@@ -27,7 +30,8 @@ class AppState {
       'state-changed': [],
       'studies-loaded': [],
       'filter-changed': [],
-      'error': []
+      'error': [],
+      'view-mode-changed': []
     };
     
     console.log('STATE: AppState initialized');
@@ -65,6 +69,14 @@ class AppState {
    */
   getSearchQuery() {
     return this._searchQuery;
+  }
+  
+  /**
+   * Get current view mode
+   * @returns {string} Current view mode ('card' or 'list')
+   */
+  getViewMode() {
+    return this._viewMode;
   }
   
   /**
@@ -166,6 +178,32 @@ class AppState {
       value: this._searchQuery
     });
     this._notifyListeners('state-changed', this);
+  }
+  
+  /**
+   * Set view mode
+   * @param {string} mode - View mode ('card' or 'list')
+   */
+  setViewMode(mode) {
+    if (mode !== 'card' && mode !== 'list') {
+      console.warn(`STATE: Invalid view mode: ${mode}, defaulting to 'card'`);
+      mode = 'card';
+    }
+    
+    if (this._viewMode !== mode) {
+      this._viewMode = mode;
+      this._notifyListeners('view-mode-changed', this._viewMode);
+      this._notifyListeners('state-changed', this);
+    }
+  }
+  
+  /**
+   * Toggle view mode between 'card' and 'list'
+   */
+  toggleViewMode() {
+    const newMode = this._viewMode === 'card' ? 'list' : 'card';
+    this.setViewMode(newMode);
+    return newMode;
   }
   
   // ------ FILTER OPERATIONS ------
