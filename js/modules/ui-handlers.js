@@ -146,7 +146,7 @@ function setupModalEventListeners() {
       
       const studyRow = event.target.closest('.study-row');
       // Only process if it's a click on the row but not on the view button
-      if (studyRow && !event.target.closest('.view-study-row-btn')) {
+      if (studyRow && !event.target.closest('.view-study-btn')) {
         const studyId = studyRow.dataset.id;
         if (studyId) {
           openStudyDetailsModal(studyId);

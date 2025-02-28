@@ -363,7 +363,7 @@ function createStudyRow(study) {
       <div class="color-indicator" style="background-color: ${colorClass};"></div>
       <h3 class="row-title">${title}</h3>
       <div class="row-action">
-        <a href="${url}" class="view-study-row-btn" target="_blank" rel="noopener">View Study</a>
+        <a href="${url}" class="view-study-btn" target="_blank" title="${url}">View Study</a>
       </div>
     `;
     
