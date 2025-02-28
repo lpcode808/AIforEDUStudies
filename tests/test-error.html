@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Engine Error Test</title>
+</head>
+<body>
+    <h1>Search Engine Error Test</h1>
+    <div id="results"></div>
+
+    <script type="module">
+        try {
+            // Import from the search-engine.js
+            const module = await import('./js/modules/search-engine.js');
+            console.log("Module imported:", Object.keys(module));
+            
+            document.getElementById('results').textContent = 'Module imported without errors!';
+        } catch (error) {
+            console.error('Import error:', error);
+            document.getElementById('results').textContent = 'Error: ' + error.message;
+        }
+    </script>
+</body>
+</html> 

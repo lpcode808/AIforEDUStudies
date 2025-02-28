@@ -5,92 +5,56 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GenAI Education Research Explorer</title>
     <link rel="stylesheet" href="css/styles.css">
-    <!-- Include Fuse.js for search functionality -->
-    <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.6.2"></script>
+    <!-- Load modules using ES modules with cache busting for latest version -->
+    <script type="module" src="js/main.js?v=3"></script>
 </head>
 <body>
-    <header>
-        <h1>GenAI Research Explorer</h1>
-        <p>Exploring studies on Generative AI in education</p>
-    </header>
+    <!-- Add the filters-wrapper to make these sections sticky -->
+    <div class="filters-wrapper">
+        <header>
+            <h1>GenAI Research Explorer</h1>
+            <p>Exploring studies on Generative AI in education</p>
+        </header>
 
-    <main>
-        <section class="search-section">
-            <div class="search-container">
-                <input type="text" id="search-input" placeholder="Search studies by title, findings, or keywords...">
-                <button id="search-button">Search</button>
-            </div>
-        </section>
+        <main>
+            <section class="search-section">
+                <div class="search-container">
+                    <input type="text" id="search-input" placeholder="Search studies by title, description, or keywords...">
+                    <button id="search-button">Search</button>
+                </div>
+            </section>
 
-        <section class="filters-section">
-            <h2>Filters</h2>
-            <div class="filter-container">
-                <div class="filter-group">
-                    <h3>Research Domains</h3>
-                    <div id="category-filters" class="filter-options">
-                        <!-- Category filters will be populated by JavaScript -->
+            <section class="filters-section">
+                <div class="filter-container">
+                    <div class="filter-group">
+                        <div id="category-filters" class="filter-options">
+                            <!-- Category filters will be populated by JavaScript -->
+                        </div>
                     </div>
-                </div>
-                
-                <!-- PARKING LOT: Date Range Filter 
-                <div class="filter-group">
-                    <h3>Date Range</h3>
-                    <div class="date-range">
-                        <label for="start-date">From:</label>
-                        <input type="month" id="start-date">
-                        <label for="end-date">To:</label>
-                        <input type="month" id="end-date">
-                    </div>
-                </div>
-                -->
+                    <div id="studies-counter-container"></div>
 
-                <!-- PARKING LOT: Complexity Level Filter
-                <div class="filter-group">
-                    <h3>Complexity Level</h3>
-                    <div id="complexity-filters" class="filter-options">
-                        <!-- Complexity filters will be populated by JavaScript -->
-                    </div>
+                    <button id="clear-filters" class="clear-filters-button">Clear All Filters</button>
                 </div>
-                -->
-
-                <!-- PARKING LOT: Region Filter
-                <div class="filter-group">
-                    <h3>Region</h3>
-                    <div id="region-filters" class="filter-options">
-                        <!-- Region filters will be populated by JavaScript -->
-                    </div>
-                </div>
-                -->
-
-                <div class="filter-group">
-                    <h3>Subject Area</h3>
-                    <div id="subject-filters" class="filter-options">
-                        <!-- Subject filters will be populated by JavaScript -->
-                    </div>
-                </div>
-
-                <div class="filter-group">
-                    <h3>Share Results</h3>
-                    <button id="share-button" class="share-button">Copy Shareable Link</button>
-                </div>
+            </section>
+        </div>
+        <!-- End of filters-wrapper -->
+        
+        <section id="active-filters-section">
+            <div id="active-filters" class="active-filters hidden">
+                <!-- Active filters will appear here -->
             </div>
         </section>
 
         <section class="results-section">
-            <h2>Research Studies</h2>
             <div id="results-container">
                 <!-- Results will be populated by JavaScript -->
-                <p class="placeholder-text">Enter a search term or apply filters to see results</p>
+                <p class="placeholder-text">Loading studies...</p>
             </div>
         </section>
     </main>
 
     <footer>
-        <p>&copy; 2025 GenAI Education Research Explorer</p>
+        <p>&copy; 2023 GenAI Education Research Explorer</p>
     </footer>
-
-    <!-- JavaScript files -->
-    <script src="js/csv-parser.js"></script>
-    <script src="js/search.js"></script>
 </body>
 </html> 

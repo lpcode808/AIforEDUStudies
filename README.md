@@ -1,104 +1,121 @@
 # GenAI Education Research Explorer
 
-This web-based application provides a searchable and filterable interface for exploring studies related to Generative AI in education. It allows researchers, educators, and policymakers to quickly find relevant research based on various criteria.
+A web application for exploring studies on Generative AI in education.
+
+## Overview
+
+This application provides a user-friendly interface to search and filter through research studies related to Generative AI in education. Users can search by keywords, filter by research categories and subject areas, and share links to their search results.
 
 ## Features
 
-- **Powerful Search**: Fuzzy text search across study titles, findings, and metadata
-- **Multi-Faceted Filtering**: Filter by research domains, date ranges, complexity, region, and subject areas
-- **Shareable Results**: Generate and share direct links to specific search results
-- **CSV-Driven**: Easy data management through CSV files, no database required
-- **Responsive Design**: Works on desktop and mobile devices
+- **Search Functionality**: Search through study titles, findings, and metadata
+- **Filtering System**: Filter studies by research domain and subject area
+- **Shareable Links**: Generate links to share specific search results
+- **Responsive Design**: Works well on desktop and mobile devices
 
-## How It Works
+## Project Structure
 
-The application uses a simple, yet powerful architecture:
+The codebase follows a modular architecture for better maintainability:
 
-1. **Data Layer**: Studies are stored in a CSV file with standardized fields
-2. **Search Engine**: Fuse.js provides fast client-side search with fuzzy matching
-3. **Filter System**: Dynamic filtering based on study metadata
-4. **URL Integration**: Search state is preserved in URL parameters for easy sharing
-5. **GitHub Pages Deployment**: Automatic deployment through GitHub Actions
+```
+project/
+├── css/
+│   └── styles.css               # CSS with design system variables
+├── js/
+│   ├── main.js                  # Application entry point
+│   └── modules/
+│       ├── state.js             # State management
+│       ├── data-loader.js       # Data loading utilities
+│       ├── search-engine.js     # Search functionality
+│       ├── components.js        # UI components
+│       ├── ui-handlers.js       # Event handlers
+│       └── utils.js             # Utility functions
+├── data/
+│   ├── processed/               # Processed data ready for the app
+│   │   └── studies.csv          # Main data file used by the app
+│   ├── raw/                     # Raw data files
+│   │   └── studies-source.html  # Original HTML source
+│   └── scripts/                 # Data processing scripts
+│       ├── extract.js           # Data extraction
+│       ├── transform.js         # Data transformation
+│       └── load.js              # CSV generation
+├── index.html                   # Main HTML file
+├── package.json                 # Project dependencies
+└── README.md                    # Project documentation
+```
+
+## Technology Stack
+
+- **Frontend**: Vanilla JavaScript with ES modules
+- **Search**: Fuse.js for fuzzy search capabilities
+- **Styling**: CSS with variables for a consistent design system
+- **Data Processing**: Node.js scripts for data extraction and transformation
 
 ## Getting Started
 
-### Local Development
+### Prerequisites
 
-To run the application locally:
+- Node.js and npm for data processing scripts
+- Any modern web browser for viewing the application
 
-1. Clone this repository
-2. Open index.html in a web browser (no server required)
+### Installation
 
-For active development with auto-reloading:
+1. Clone the repository:
+   ```
+   git clone https://github.com/yourusername/genai-education-research-explorer.git
+   cd genai-education-research-explorer
+   ```
 
-```bash
-# Install a local development server
-npm install -g live-server
+2. Install dependencies:
+   ```
+   npm install
+   ```
 
-# Start the server
-live-server
+3. To process new data (optional):
+   ```
+   cd data/scripts
+   node load.js --pipeline
+   ```
+
+4. Start a local server:
+   ```
+   npx http-server
+   ```
+
+5. Open your browser and navigate to `http://localhost:8080`
+
+## Data Processing Pipeline
+
+The data processing pipeline consists of three stages:
+
+1. **Extract**: Parses HTML source to extract study information
+2. **Transform**: Cleans and enhances the extracted data
+3. **Load**: Converts the data to CSV format for use in the web application
+
+To run the complete pipeline:
+```
+node data/scripts/load.js --pipeline
 ```
 
-### Editing the Data
+## Development
 
-The research data is stored in `/data/studies.csv` with the following structure:
+### Adding New Features
 
-```csv
-id,categories,title,organization,date,key_findings,url,metadata
-study-id,"Category 1|Category 2","Study Title","Organization Name",YYYY-MM,"Key findings text...","https://example.com",complexity=3|region=global|subjects=math,science
-```
+1. **New Filter Types**: Extend the state in `state.js` and add UI elements in `components.js`
+2. **Additional Search Fields**: Update the Fuse.js configuration in `search-engine.js`
+3. **New UI Components**: Add component templates to `components.js`
 
-Guidelines for editing:
-- **categories**: Use pipe (|) to separate multiple categories
-- **date**: Use ISO format (YYYY-MM)
-- **metadata**: Use pipe (|) to separate key-value pairs, format: key=value
-- **multi-value metadata**: Use commas to separate values within a metadata field, like: subjects=math,science
+### Code Style
 
-### Deployment
-
-The application is automatically deployed to GitHub Pages whenever changes are pushed to the main branch. The GitHub Action workflow:
-
-1. Checks out the code
-2. Converts the CSV data to JSON
-3. Deploys to GitHub Pages
-
-## Data Structure
-
-### CSV Fields
-
-| Field | Description | Format |
-|-------|-------------|--------|
-| id | Unique identifier | Text |
-| categories | Research domains | Pipe-separated values |
-| title | Study title | Text |
-| organization | Publishing organization | Text |
-| date | Publication date | YYYY-MM |
-| key_findings | Summary of findings | Text |
-| url | Link to original study | URL |
-| metadata | Additional attributes | key=value pairs |
-
-### Metadata Structure
-
-Common metadata fields:
-- **complexity**: Study complexity level (1-5)
-- **region**: Geographic focus (global, usa, europe, etc.)
-- **subjects**: Academic subjects (math, reading, computer_science, etc.)
-- **grade**: Education levels (k-12, college, etc.)
-
-## Customization
-
-The application can be customized in several ways:
-
-- Edit `css/styles.css` to change the visual appearance
-- Modify `js/search.js` to adjust search behavior
-- Update the filter system in `index.html` to add new filter types
+- Use ES6+ features
+- Follow modular design principles
+- Document functions with JSDoc comments
 
 ## License
 
-This project is released under the MIT license.
+This project is licensed under the MIT License - see the LICENSE file for details.
 
 ## Acknowledgments
 
-- Fuse.js for the fuzzy search functionality
-- GitHub Pages for hosting
-- All researchers contributing valuable studies on AI in education 
+- Thanks to all researchers contributing to the field of AI in education
+- Fuse.js for the excellent search functionality

@@ -1,0 +1,72 @@
+[
+  {
+    "id": "study-1",
+    "title": "AI in K-12 Education: Current Practices and Future Trends",
+    "url": "https://example.com/study1",
+    "organization": "National Education Research Institute",
+    "date": "2023-11-15",
+    "description": "This study examines the current implementation of AI tools in K-12 classrooms across the United States. It highlights best practices, challenges, and provides recommendations for educators and administrators.",
+    "categories": ["Current AI Use and Perceptions in PK 12 & HigherEd"],
+    "metadata": {
+      "subjects": ["K-12", "Education Technology", "AI Implementation"],
+      "year": "2023",
+      "authors": ["Dr. Jane Smith", "Dr. Robert Johnson"]
+    }
+  },
+  {
+    "id": "study-2",
+    "title": "The Impact of Generative AI on Higher Education Assessment",
+    "url": "https://example.com/study2",
+    "organization": "University Research Consortium",
+    "date": "2023-09-22",
+    "description": "This research investigates how generative AI tools are changing assessment practices in higher education. It explores both the challenges posed by tools like ChatGPT and the opportunities for new forms of authentic assessment.",
+    "categories": ["Current AI Use and Perceptions in PK 12 & HigherEd", "Student Performance Data"],
+    "metadata": {
+      "subjects": ["Higher Education", "Assessment", "ChatGPT"],
+      "year": "2023",
+      "authors": ["Prof. Michael Brown", "Dr. Sarah Williams"]
+    }
+  },
+  {
+    "id": "study-3",
+    "title": "AI Skills in the Workforce: Employer Expectations and Educational Alignment",
+    "url": "https://example.com/study3",
+    "organization": "Workforce Innovation Center",
+    "date": "2023-08-10",
+    "description": "This comprehensive survey of employers across industries identifies the AI skills most in demand and evaluates how well current educational programs are preparing students for AI-augmented careers.",
+    "categories": ["Workforce Trends"],
+    "metadata": {
+      "subjects": ["Workforce Development", "Skills Gap", "Industry Trends"],
+      "year": "2023",
+      "authors": ["Dr. Thomas Chen", "Emily Rodriguez, MBA"]
+    }
+  },
+  {
+    "id": "study-4",
+    "title": "Student Performance Analysis with AI-Enhanced Learning Platforms",
+    "url": "https://example.com/study4",
+    "organization": "Educational Technology Association",
+    "date": "2023-10-05",
+    "description": "This longitudinal study measures student performance outcomes when using AI-enhanced learning platforms compared to traditional methods. It includes data from 50 schools across diverse socioeconomic settings.",
+    "categories": ["Student Performance Data"],
+    "metadata": {
+      "subjects": ["Personalized Learning", "Student Outcomes", "EdTech Platforms"],
+      "year": "2023",
+      "authors": ["Dr. Lisa Wong", "Prof. James Taylor"]
+    }
+  },
+  {
+    "id": "study-5",
+    "title": "AI Policy Development in Educational Institutions",
+    "url": "https://example.com/study5",
+    "organization": "Center for Educational Policy Research",
+    "date": "2023-07-18",
+    "description": "This analysis documents the current state of AI usage policies in educational institutions, from K-12 to higher education. It provides a framework for developing comprehensive AI policies that balance innovation with ethical considerations.",
+    "categories": ["Current State of Guidelines, Training, and Policies"],
+    "metadata": {
+      "subjects": ["Educational Policy", "Ethics", "Governance"],
+      "year": "2023",
+      "authors": ["Dr. David Garcia", "Prof. Amanda Lewis"]
+    }
+  }
+] 

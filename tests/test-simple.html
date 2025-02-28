@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Search Engine Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .success { color: green; font-weight: bold; }
+        .error { color: red; font-weight: bold; }
+        pre { background: #f5f5f5; padding: 10px; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Simple Search Engine Import Test</h1>
+    <div id="status">Testing...</div>
+    <h2>Import Results:</h2>
+    <pre id="results"></pre>
+    
+    <script type="module">
+        const resultsEl = document.getElementById('results');
+        const statusEl = document.getElementById('status');
+        
+        try {
+            // Import the module
+            const searchModule = await import('./js/modules/search-engine-new.js?nocache=' + Date.now());
+            
+            // Test what was imported
+            resultsEl.textContent = 'Successfully imported these exports:\n\n' + 
+                                   Object.keys(searchModule).map(key => '- ' + key).join('\n');
+            
+            statusEl.className = 'success';
+            statusEl.textContent = 'Success! Module imported correctly.';
+            
+            // Test if functions work
+            if (typeof searchModule.search === 'function') {
+                const testResult = searchModule.search([{title: 'Test Study'}], 'test');
+                console.log('Search test result:', testResult);
+            }
+            
+        } catch (error) {
+            resultsEl.textContent = 'Error: ' + error.message + '\n\n' + error.stack;
+            statusEl.className = 'error';
+            statusEl.textContent = 'Error importing module!';
+            console.error('Import error:', error);
+        }
+    </script>
+</body>
+</html> 

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Engine Rebuilder</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; padding: 20px; }
+        pre { background: #f4f4f4; padding: 10px; border-radius: 5px; overflow: auto; }
+        .success { color: green; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <h1>Search Engine Module Rebuilder</h1>
+    <div id="results"></div>
+    <pre id="output"></pre>
+
+    <script type="module">
+        const output = document.getElementById('output');
+        const results = document.getElementById('results');
+        
+        try {
+            // Import the module and analyze it
+            const module = await import('./js/modules/search-engine.js');
+            
+            // Log the exported members
+            const exportedMembers = Object.keys(module);
+            output.textContent = `Exported members: ${JSON.stringify(exportedMembers, null, 2)}\n\n`;
+            
+            // Create fixed module code
+            let fixedCode = `/**
+ * Search Engine Module for GenAI Studies Explorer
+ * Provides a powerful search capability using Fuse.js with enhanced error handling
+ * Version 3.0 - Fixed
+ */
+
+import AppState from './state.js';
+
+// Fuse.js instance
+let fuseInstance = null;
+
+`;
+
+            // Add exported functions
+            for (const memberName of exportedMembers) {
+                if (typeof module[memberName] === 'function') {
+                    fixedCode += `export const ${memberName} = ${module[memberName].toString()};\n\n`;
+                }
+            }
+            
+            output.textContent += `Fixed code generated. Copy this to a new file:\n\n${fixedCode}`;
+            results.innerHTML = '<span class="success">Module analyzed successfully!</span>';
+            
+        } catch (error) {
+            console.error('Error analyzing module:', error);
+            results.innerHTML = `<span class="error">Error: ${error.message}</span>`;
+            output.textContent = error.stack;
+        }
+    </script>
+</body>
+</html> 
