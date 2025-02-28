@@ -1,5 +1,10 @@
 # Development Log
 
+## February 27, 2025
+- search not working
+- padding for the filter button
+- why didnt the source: see screenshot sync up basic html change
+
 ## February 28, 2025
 
 ### UI Layout Improvements

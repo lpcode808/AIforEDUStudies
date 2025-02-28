@@ -36,17 +36,17 @@
     <div class="filters-wrapper">
         <header>
             <h1>Studies Related to Generative AI in Education</h1>
-            <p><a href="https://www.aiforeducation.io/ai-resources/studies-related-to-generative-ai-in-education">AI for Education</a>
+            <p>Source: <a href="https://www.aiforeducation.io/ai-resources/studies-related-to-generative-ai-in-education">AI for Education</a>
             </p>
         </header>
 
         <main>
             <section class="search-section">
                 <div class="view-toggle-container">
-                    <button id="toggle-view-btn" class="toggle-view-btn" title="Toggle between list and card view">
-                        <span class="view-icon">📋</span>
-                        <span class="view-label">List View</span>
-                    </button>
+                    <div class="view-toggle-buttons">
+                        <button id="list-view-btn" class="view-mode-btn active" title="Show items in list view">List</button>
+                        <button id="card-view-btn" class="view-mode-btn" title="Show items in card view">Card</button>
+                    </div>
                 </div>
                 <div class="search-container">
                     <input type="text" id="search-input" placeholder="Search studies by title, description, or keywords...">
@@ -100,11 +100,12 @@
         <p>&copy; 2025 AI for Education</p>
     </footer>
     
-    <!-- Debug Panel -->
+    <!-- Debug Panel - Commented out but preserved for future debugging needs
     <div class="debug-panel">
         <strong>Debug Mode:</strong> Troubleshooting module loading issues
         <a href="js/debug.html" target="_blank">Module Debug Tool</a>
         <a href="js/bootstrap-debug.html" target="_blank">Bootstrap Debug Tool</a>
     </div>
+    -->
 </body>
 </html> 

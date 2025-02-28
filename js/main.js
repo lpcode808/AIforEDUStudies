@@ -7,7 +7,7 @@
 import AppState from './modules/state.js';
 // Temporarily comment out bootstrap import to avoid errors
 // import { bootstrapApplication } from './modules/bootstrap.js';
-import { initializeSearchEngine } from './modules/search-engine.js';
+import { initializeSearchEngine, search } from './modules/search-engine.js';
 import { 
   setupEventListeners, 
   displayStudies, 
@@ -31,21 +31,32 @@ async function initSearch() {
     // Get the studies data from AppState
     const studies = AppState.getStudies();
     
+    // Ensure studies data is valid
     if (!studies || !Array.isArray(studies) || studies.length === 0) {
       console.warn('APP: No studies data available for search engine initialization');
       return Promise.resolve();
     }
     
-    // Import the search engine module
-    const { initializeSearchEngine } = await import('./modules/search-engine.js');
+    console.log(`APP: Initializing search engine with ${studies.length} studies`);
     
-    // Initialize the search engine with the studies data
-    initializeSearchEngine(studies);
-    console.log(`APP: Search engine initialized with ${studies.length} studies`);
+    try {
+      // Initialize the search engine with the studies data and await its completion
+      await initializeSearchEngine(studies);
+      console.log('APP: Search engine initialization completed');
+      
+      // Test search engine with a simple query
+      const testQuery = ""; // Empty query should return all studies
+      const results = await search(testQuery);
+      console.log(`APP: Search engine test complete, got ${results ? results.length : 0} results`);
+      
+      return Promise.resolve();
+    } catch (searchError) {
+      console.error('APP: Error initializing search engine:', searchError);
+      return Promise.resolve(); // Continue app initialization even if search engine fails
+    }
     
-    return Promise.resolve();
   } catch (error) {
-    console.error('APP: Error initializing search engine:', error);
+    console.error('APP: Error in initSearch function:', error);
     return Promise.reject(error);
   }
 }
@@ -65,20 +76,41 @@ async function initApp() {
     const searchButton = document.getElementById('search-button');
     const searchInput = document.getElementById('search-input');
     if (searchButton && searchInput) {
-      searchButton.addEventListener('click', () => {
-        console.log('APP: Search button clicked');
-        const query = searchInput.value.trim();
-        AppState.setSearchQuery(query);
-        updateResults();
-      });
+      // Function to perform the search
+      const performSearch = () => {
+        console.log('APP: Search triggered');
+        try {
+          const query = searchInput.value.trim();
+          console.log(`APP: Search query: "${query}"`);
+          
+          // Set the search query in the application state
+          AppState.setSearchQuery(query);
+          
+          // Update the results based on the new query
+          updateResults();
+          console.log('APP: Search results updated');
+        } catch (error) {
+          console.error('APP: Error during search:', error);
+        }
+      };
+      
+      // Add click listener to button
+      searchButton.addEventListener('click', performSearch);
       console.log('APP: Search button event listener added');
+      
+      // Add keypress listener to input field (for Enter key)
+      searchInput.addEventListener('keyup', (event) => {
+        if (event.key === 'Enter') {
+          console.log('APP: Enter key pressed in search input');
+          performSearch();
+        }
+      });
+      console.log('APP: Search input Enter key listener added');
     } else {
       console.warn('APP: Search button or input not found in DOM');
+      if (!searchButton) console.warn('APP: Search button element not found');
+      if (!searchInput) console.warn('APP: Search input element not found');
     }
-    
-    // Initialize search implementation
-    console.log('APP: Initializing search implementation');
-    await initSearch();
     
     // Show loading indicator - safely check if it exists first
     const loadingIndicator = document.getElementById('loading-indicator');
@@ -148,6 +180,10 @@ async function initApp() {
     // Initialize the category filters
     console.log('APP: Initializing category filters');
     initCategoryFilters();
+    
+    // Initialize search implementation AFTER data is loaded
+    console.log('APP: Initializing search implementation (after data is loaded)');
+    await initSearch();
     
     // Hide loading indicator - safely check if it exists first
     if (loadingIndicator) {
@@ -252,7 +288,11 @@ function initCategoryFilters() {
         const button = document.createElement('button');
         button.className = 'filter-button domain-button';
         button.dataset.category = category;
-        button.textContent = category;
+        
+        // Create a span for the text instead of using textContent
+        const textSpan = document.createElement('span');
+        textSpan.textContent = category;
+        button.appendChild(textSpan);
         
         // Add click event handler
         button.addEventListener('click', function() {

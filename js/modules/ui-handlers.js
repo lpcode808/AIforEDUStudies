@@ -85,14 +85,21 @@ function setupEventListeners() {
   }
   
   // View toggle button
-  const toggleViewBtn = document.getElementById('toggle-view-btn');
-  if (toggleViewBtn) {
-    toggleViewBtn.addEventListener('click', () => {
-      const newMode = AppState.toggleViewMode();
+  const listViewBtn = document.getElementById('list-view-btn');
+  const cardViewBtn = document.getElementById('card-view-btn');
+  
+  if (listViewBtn && cardViewBtn) {
+    listViewBtn.addEventListener('click', () => {
+      AppState.setViewMode('list');
+      updateViewMode();
+    });
+    
+    cardViewBtn.addEventListener('click', () => {
+      AppState.setViewMode('card');
       updateViewMode();
     });
   } else {
-    console.warn('UI: View toggle button not found in DOM');
+    console.warn('UI: View toggle buttons not found in DOM');
   }
   
   // Modal setup
@@ -268,39 +275,46 @@ function updateViewMode() {
 }
 
 /**
- * Updates the view toggle button to reflect the current view mode
+ * Updates the view toggle buttons to reflect the current view mode
  * @param {string} viewMode - Current view mode ('card' or 'list') 
  */
 function updateViewToggleButton(viewMode) {
   try {
-    const toggleBtn = document.getElementById('toggle-view-btn');
-    if (!toggleBtn) return;
+    const listViewBtn = document.getElementById('list-view-btn');
+    const cardViewBtn = document.getElementById('card-view-btn');
     
-    const iconSpan = toggleBtn.querySelector('.view-icon');
-    const labelSpan = toggleBtn.querySelector('.view-label');
+    if (!listViewBtn || !cardViewBtn) {
+      console.warn('UI: View toggle buttons not found');
+      return;
+    }
     
     if (viewMode === 'list') {
-      // We're in list view, so button should show option for card view
-      toggleBtn.classList.add('active');
-      if (iconSpan) iconSpan.textContent = '🔲';
-      if (labelSpan) labelSpan.textContent = 'Card View';
+      // We're in list view
+      listViewBtn.classList.add('active');
+      cardViewBtn.classList.remove('active');
     } else {
-      // We're in card view, so button should show option for list view
-      toggleBtn.classList.remove('active');
-      if (iconSpan) iconSpan.textContent = '📋';
-      if (labelSpan) labelSpan.textContent = 'List View';
+      // We're in card view
+      cardViewBtn.classList.add('active');
+      listViewBtn.classList.remove('active');
     }
   } catch (error) {
-    console.error('UI: Error updating view toggle button:', error);
+    console.error('UI: Error updating view toggle buttons:', error);
   }
 }
 
 /**
- * Updates the results display based on current filters
+ * Updates the displayed results based on current filters and search query
+ * @returns {Promise<void>}
  */
 async function updateResults() {
   try {
-    console.log('UI: Updating results based on filters');
+    console.log('UI: Updating results based on filters and search query');
+    
+    // Show a loading indicator if it exists
+    const loadingIndicator = document.getElementById('loading-indicator');
+    if (loadingIndicator) {
+      loadingIndicator.style.display = 'block';
+    }
     
     // Get all studies
     const allStudies = AppState.getStudies();
@@ -309,37 +323,66 @@ async function updateResults() {
     if (!allStudies || !Array.isArray(allStudies) || allStudies.length === 0) {
       console.error('UI: No studies data available in AppState');
       displayError('No studies data available. Please try refreshing the page.');
+      if (loadingIndicator) {
+        loadingIndicator.style.display = 'none';
+      }
       return;
     }
+    
+    // Get search query from AppState
+    const searchQuery = AppState.getSearchQuery() || '';
+    console.log(`UI: Using search query: "${searchQuery}"`);
     
     // Get category filters from AppState
     const categoryFilters = AppState.getCategoryFilters();
     console.log(`UI: Using ${categoryFilters.length} category filters`);
     
-    // If no category filters are active, display all studies
-    if (!categoryFilters || categoryFilters.length === 0) {
-      console.log('UI: No category filters active, displaying all studies');
-      displayStudies(allStudies);
-      return;
+    // Import search functions from search-engine
+    const { search, filterStudies } = await import('./search-engine.js');
+    
+    // First, search for studies matching the query
+    let searchResults = allStudies;
+    if (searchQuery) {
+      console.log(`UI: Searching for: "${searchQuery}"`);
+      try {
+        searchResults = await search(searchQuery, allStudies);
+        console.log(`UI: Search returned ${searchResults.length} results`);
+      } catch (searchError) {
+        console.error('UI: Error during search:', searchError);
+        // Fall back to all studies on search error
+        searchResults = allStudies;
+      }
     }
     
-    // Import filterStudies from search-engine
-    const { filterStudies } = await import('./search-engine.js');
-    
-    // Filter studies directly
-    const results = filterStudies(allStudies);
-    
-    console.log(`UI: Found ${results ? results.length : 0} studies matching current filters`);
+    // Then filter by category if needed
+    let finalResults = searchResults;
+    if (categoryFilters && categoryFilters.length > 0) {
+      console.log('UI: Applying category filters');
+      finalResults = filterStudies(searchResults);
+      console.log(`UI: After filtering, ${finalResults.length} studies remain`);
+    }
     
     // Update active filters UI
     updateActiveFiltersDisplay();
     
+    // Hide loading indicator
+    if (loadingIndicator) {
+      loadingIndicator.style.display = 'none';
+    }
+    
     // Update results display
-    displayStudies(results);
+    console.log(`UI: Displaying ${finalResults.length} studies`);
+    displayStudies(finalResults);
     
   } catch (error) {
     console.error('UI: Error updating results:', error);
     displayError('An error occurred while updating results. Please try refreshing the page.');
+    
+    // Hide loading indicator
+    const loadingIndicator = document.getElementById('loading-indicator');
+    if (loadingIndicator) {
+      loadingIndicator.style.display = 'none';
+    }
   }
 }
 
