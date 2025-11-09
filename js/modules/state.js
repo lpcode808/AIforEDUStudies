@@ -33,8 +33,7 @@ class AppState {
       'error': [],
       'view-mode-changed': []
     };
-    
-    console.log('STATE: AppState initialized');
+
   }
   
   // ------ GETTERS ------
@@ -111,8 +110,7 @@ class AppState {
    */
   setStudies(studies) {
     try {
-      console.log(`STATE: Setting ${studies ? studies.length : 0} studies`);
-      
+
       if (!studies || !Array.isArray(studies)) {
         console.error('STATE: Invalid studies data provided to setStudies');
         this._studies = [];
@@ -132,8 +130,7 @@ class AppState {
       this._initialized = true;
       this._loading = false;
       this._error = null;
-      
-      console.log(`STATE: Successfully set ${this._studies.length} studies`);
+
       this._notifyListeners('studies-loaded', this._studies);
       this._notifyListeners('state-changed', this);
     } catch (error) {
@@ -186,7 +183,7 @@ class AppState {
    */
   setViewMode(mode) {
     if (mode !== 'card' && mode !== 'list') {
-      console.warn(`STATE: Invalid view mode: ${mode}, defaulting to 'card'`);
+      
       mode = 'card';
     }
     
@@ -214,7 +211,7 @@ class AppState {
    */
   addCategoryFilter(category) {
     if (!category || typeof category !== 'string') {
-      console.warn('STATE: Cannot add invalid category filter:', category);
+      
       return;
     }
     
@@ -252,7 +249,7 @@ class AppState {
    */
   addSubjectFilter(subject) {
     if (!subject || typeof subject !== 'string') {
-      console.warn('STATE: Cannot add invalid subject filter:', subject);
+      
       return;
     }
     
@@ -321,7 +318,7 @@ class AppState {
    */
   addEventListener(event, callback) {
     if (typeof callback !== 'function') {
-      console.warn('STATE: Cannot add non-function as event listener');
+      
       return;
     }
     

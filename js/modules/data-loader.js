@@ -1,54 +1,42 @@
 /**
  * Data Loading Module for GenAI Studies Explorer
  * Handles fetching and initial normalization of data
- * Version 3.0 with enhanced error handling
+ * Version 4.0 - QUICK WIN: Using pre-processed JSON instead of CSV
  */
 
 // URL of the data file
-const DATA_URL = './data/studies.csv';
+const DATA_URL = './data/studies.json';
 
 /**
- * Load studies data from the CSV file
+ * Load studies data from the JSON file (pre-processed from CSV)
  * @returns {Promise<Array>} Promise resolving to array of study objects
  */
 export async function loadStudiesData() {
   try {
-    console.log('DataLoader: Beginning to load studies data');
+    
     // Store the fetch start time for performance metrics
     const fetchStart = performance.now();
-    
-    // Load studies from CSV
-    const response = await fetch('data/studies.csv');
-    
+
+    // Load studies from JSON (much faster than CSV parsing)
+    const response = await fetch('data/studies.json');
+
     if (!response.ok) {
-      console.error(`DataLoader: Failed to fetch studies.csv: ${response.status} ${response.statusText}`);
+      console.error(`DataLoader: Failed to fetch studies.json: ${response.status} ${response.statusText}`);
       throw new Error(`Failed to fetch studies data: ${response.status} ${response.statusText}`);
     }
-    
+
     const fetchEnd = performance.now();
-    console.log(`DataLoader: Fetched studies.csv in ${(fetchEnd - fetchStart).toFixed(2)}ms`);
-    
-    // Get text content
-    const csvText = await response.text();
-    console.log(`DataLoader: Received CSV data of length: ${csvText.length} characters`);
-    console.log(`DataLoader: CSV preview: ${csvText.substring(0, 100)}...`);
-    
-    // Parse CSV
+
+    // Parse JSON (native browser parsing - much faster than custom CSV parsing)
     const parseStart = performance.now();
-    const items = await parseCSV(csvText);
+    const items = await response.json();
     const parseEnd = performance.now();
-    
-    console.log(`DataLoader: Parsed ${items.length} items from CSV in ${(parseEnd - parseStart).toFixed(2)}ms`);
-    console.log(`DataLoader: First item sample:`, items.length > 0 ? items[0] : 'No items found');
-    
+
     // Convert to normalized studies
     const normalizeStart = performance.now();
     const studies = normalizeStudies(items);
     const normalizeEnd = performance.now();
-    
-    console.log(`DataLoader: Normalized ${studies.length} studies in ${(normalizeEnd - normalizeStart).toFixed(2)}ms`);
-    console.log(`DataLoader: First study sample:`, studies.length > 0 ? studies[0] : 'No studies found');
-    
+
     // Return the studies
     return studies;
   } catch (error) {
@@ -64,8 +52,7 @@ export async function loadStudiesData() {
  */
 function performInitialValidation(data) {
   try {
-    console.log('DATALOADER: Performing initial data validation');
-    
+
     if (!Array.isArray(data)) {
       console.error('DATALOADER: Data is not an array');
       return [];
@@ -74,13 +61,12 @@ function performInitialValidation(data) {
     // Filter out null/undefined/non-object entries
     const filtered = data.filter(item => {
       if (!item || typeof item !== 'object') {
-        console.warn('DATALOADER: Filtering out invalid study item');
+        
         return false;
       }
       return true;
     });
-    
-    console.log(`DATALOADER: ${filtered.length} valid studies after initial validation`);
+
     return filtered;
   } catch (error) {
     console.error('DATALOADER: Error during initial data validation:', error);
@@ -95,16 +81,14 @@ function performInitialValidation(data) {
  */
 function normalizeStudies(studies) {
   if (!studies || !Array.isArray(studies)) {
-    console.warn('normalizeStudies received invalid data:', studies);
+    
     return [];
   }
-  
-  console.log(`Normalizing ${studies.length} studies`);
-  
+
   return studies.map((study, index) => {
     // Skip null/undefined studies
     if (!study) {
-      console.warn(`Study at index ${index} is null or undefined`);
+      
       return null;
     }
     
@@ -145,7 +129,7 @@ function normalizeStudies(studies) {
       // Ensure at least one category exists
       if (normalizedStudy.categories.length === 0) {
         normalizedStudy.categories = ['Uncategorized'];
-        console.log(`Added default category for study ${index}`);
+        
       }
     } catch (error) {
       console.error(`Error processing categories for study ${index}:`, error);
@@ -198,15 +182,11 @@ function parseCSV(text) {
       console.error('CSV has fewer than 2 lines, cannot parse headers and data');
       return [];
     }
-    
-    console.log(`DataLoader: CSV has ${lines.length} lines`);
-    
+
     // Extract headers from the first line
     const headerLine = lines[0];
     const headers = headerLine.split(',').map(h => h.trim());
-    console.log('DataLoader: CSV Headers:', headers);
-    console.log('DataLoader: First header line:', headerLine);
-    
+
     // Process data lines with more robust parsing
     const results = [];
     let successCount = 0;
@@ -261,7 +241,7 @@ function parseCSV(text) {
         
         // Log sample for debugging
         if (i === 1) {
-          console.log('DataLoader: First data row parsed:', obj);
+          
         }
         
         results.push(obj);
@@ -271,13 +251,10 @@ function parseCSV(text) {
         errorCount++;
       }
     }
-    
-    console.log(`DataLoader: Successfully parsed ${successCount} items from CSV (${errorCount} errors)`);
-    
+
     // Log sample of parsed data
     if (results.length > 0) {
-      console.log('DataLoader: First item parsed:', results[0]);
-      console.log('DataLoader: First item categories:', results[0].categories);
+
     }
     
     return results;

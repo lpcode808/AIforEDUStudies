@@ -19,11 +19,10 @@ let fuseLoadingPromise = null;
  * @returns {Promise} - Promise that resolves when search engine is initialized
  */
 function initializeSearchEngine(studies) {
-  console.log('SEARCH: Initializing search engine');
-  
+
   // If we already have a loading promise in progress, return it
   if (fuseLoadingPromise) {
-    console.log('SEARCH: Search engine initialization already in progress');
+    
     return fuseLoadingPromise;
   }
   
@@ -35,8 +34,8 @@ function initializeSearchEngine(studies) {
     
     // Create a promise to track the Fuse.js loading process
     fuseLoadingPromise = new Promise((resolve, reject) => {
-      // Dynamically import Fuse.js
-      import('https://cdn.jsdelivr.net/npm/fuse.js@6.6.2/dist/fuse.esm.js')
+      // Dynamically import Fuse.js from local vendor directory (Quick Win #4)
+      import('../vendor/fuse.esm.js')
         .then(module => {
           const Fuse = module.default;
           
@@ -57,7 +56,7 @@ function initializeSearchEngine(studies) {
             // Create Fuse instance
             fuseInstance = new Fuse(studies, options);
             isSearchEngineReady = true;
-            console.log('SEARCH: Search engine successfully initialized');
+            
             resolve();
           } catch (err) {
             console.error('SEARCH: Error creating Fuse instance:', err);
@@ -86,30 +85,28 @@ function initializeSearchEngine(studies) {
  */
 async function search(query, studies = []) {
   try {
-    console.log(`SEARCH: Searching for "${query}"`);
-    
+
     // If query is empty, return all studies
     if (!query || query.trim() === '') {
-      console.log('SEARCH: Empty query, returning all studies');
+      
       return studies.length > 0 ? studies : AppState.getStudies() || [];
     }
     
     // Check if search engine is ready
     if (!isSearchEngineReady || !fuseInstance) {
-      console.log('SEARCH: Search engine not ready, waiting for initialization');
-      
+
       // If we have a loading promise, wait for it
       if (fuseLoadingPromise) {
         try {
           await fuseLoadingPromise;
-          console.log('SEARCH: Search engine loaded, proceeding with search');
+          
         } catch (error) {
           console.error('SEARCH: Failed to initialize search engine:', error);
           // Fall back to simple filtering if available
           return performSimpleSearch(query, studies);
         }
       } else {
-        console.warn('SEARCH: No search engine loading process found');
+        
         return performSimpleSearch(query, studies);
       }
     }
@@ -117,8 +114,7 @@ async function search(query, studies = []) {
     // At this point, fuseInstance should be available
     if (fuseInstance) {
       const results = fuseInstance.search(query);
-      console.log(`SEARCH: Found ${results.length} results`);
-      
+
       // Map results to actual study objects (Fuse returns objects with item property)
       return results.map(result => result.item);
     } else {
@@ -139,8 +135,7 @@ async function search(query, studies = []) {
  * @returns {Array} - Filtered studies
  */
 function performSimpleSearch(query, studies = []) {
-  console.log('SEARCH: Performing simple fallback search');
-  
+
   // Get studies from parameter or AppState
   const studiesData = studies.length > 0 ? studies : AppState.getStudies() || [];
   
@@ -173,9 +168,7 @@ function filterStudies(studies) {
     console.error('Invalid studies data in filterStudies:', studies);
     return [];
   }
-  
-  console.log(`Filtering ${studies.length} studies`);
-  
+
   // Defensive check for AppState
   if (!AppState) {
     console.error('AppState is undefined in filterStudies');
@@ -185,11 +178,10 @@ function filterStudies(studies) {
   try {
     // Get category filters directly from AppState
     const categoryFilters = AppState.getCategoryFilters();
-    console.log(`Using ${categoryFilters.length} category filters from AppState`);
-    
+
     // If no categories are selected, show all studies
     if (!categoryFilters || categoryFilters.length === 0) {
-      console.log('No category filters active, returning all studies');
+      
       return studies;
     }
     
@@ -212,24 +204,22 @@ function filterStudies(studies) {
       // Show study only if it belongs to at least one of the selected categories
       const hasSelectedCategory = studyCategories.some(studyCategory => {
         // For debugging
-        console.log('Checking study category:', studyCategory);
-        
+
         // Exact match
         if (categories.has(studyCategory)) {
-          console.log('Exact match found for:', studyCategory);
+          
           return true;
         }
         
         // Check for matches between button categories and actual data categories
         for (const filterCategory of categories) {
-          console.log('Comparing filter:', filterCategory, 'with study category:', studyCategory);
-          
+
           // For 'AI Use and Perceptions' button
           if (filterCategory === 'AI Use and Perceptions' && 
               (studyCategory === 'Current AI Use and Perceptions in PK 12 & HigherEd' ||
                studyCategory.includes('AI Use') ||
                studyCategory.includes('AI Perceptions'))) {
-            console.log('Matched AI Use and Perceptions');
+            
             return true;
           }
           
@@ -239,7 +229,7 @@ function filterStudies(studies) {
                studyCategory.includes('Guidelines') ||
                studyCategory.includes('Training') ||
                studyCategory.includes('Policies'))) {
-            console.log('Matched Guidelines category');
+            
             return true;
           }
           
@@ -248,7 +238,7 @@ function filterStudies(studies) {
               (studyCategory === 'Student Performance Data' ||
                studyCategory.includes('Performance') ||
                studyCategory.includes('Student Data'))) {
-            console.log('Matched Performance Data category');
+            
             return true;
           }
           
@@ -256,7 +246,7 @@ function filterStudies(studies) {
           if (filterCategory === 'Workforce Trends' && 
               (studyCategory === 'Workforce Trends' ||
                studyCategory.includes('Workforce'))) {
-            console.log('Matched Workforce category');
+            
             return true;
           }
         }
@@ -293,13 +283,7 @@ function getFilteredResults() {
   const categoryFilters = AppState.getCategoryFilters ? AppState.getCategoryFilters() : [];
   
   // Log the current state for debugging
-  console.log('getFilteredResults - current state:', {
-    searchQuery,
-    hasStudies: !!studies,
-    studiesLength: studies ? studies.length : 0,
-    categoryFilters
-  });
-  
+
   // First search - with defensive check
   let results = [];
   try {

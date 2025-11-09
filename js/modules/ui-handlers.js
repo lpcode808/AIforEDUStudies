@@ -12,7 +12,6 @@ import { search } from './search-engine.js';
  * Sets up all event listeners for the UI
  */
 function setupEventListeners() {
-  console.log('UI: Setting up event listeners');
 
   // Category filter listeners (now button-based)
   const categoryFilters = document.getElementById('category-filters');
@@ -34,7 +33,7 @@ function setupEventListeners() {
       }
     });
   } else {
-    console.warn('UI: Category filters container not found in DOM');
+    
   }
 
   // Search input listener
@@ -51,7 +50,7 @@ function setupEventListeners() {
       }, 300);
     });
   } else {
-    console.warn('UI: Search input not found in DOM');
+    
   }
 
   // Clear filters button
@@ -81,7 +80,7 @@ function setupEventListeners() {
       updateResults();
     });
   } else {
-    console.warn('UI: Clear filters button not found in DOM');
+    
   }
   
   // View toggle button
@@ -99,7 +98,7 @@ function setupEventListeners() {
       updateViewMode();
     });
   } else {
-    console.warn('UI: View toggle buttons not found in DOM');
+    
   }
   
   // Modal setup
@@ -114,7 +113,7 @@ function setupModalEventListeners() {
   const modalCloseBtn = document.getElementById('study-modal-close');
   
   if (!modalOverlay || !modalCloseBtn) {
-    console.warn('UI: Modal elements not found in DOM');
+    
     return;
   }
   
@@ -226,8 +225,7 @@ function closeModal() {
 function updateViewMode() {
   try {
     const viewMode = AppState.getViewMode();
-    console.log(`UI: Switching to ${viewMode} view mode`);
-    
+
     // Get the current results container
     const resultsContainer = document.getElementById('results-container');
     if (!resultsContainer) {
@@ -240,11 +238,11 @@ function updateViewMode() {
     const oldList = document.getElementById('studies-list');
     
     if (oldGrid) {
-      console.log('UI: Removing old grid container');
+      
       oldGrid.remove();
     }
     if (oldList) {
-      console.log('UI: Removing old list container');
+      
       oldList.remove();
     }
     
@@ -254,16 +252,15 @@ function updateViewMode() {
     if (viewMode === 'list') {
       container.id = 'studies-list';
       container.className = 'list-view';
-      console.log('UI: Created list view container');
+      
     } else {
       container.id = 'studies-grid';
       container.className = 'grid-view';
-      console.log('UI: Created grid view container');
+      
     }
     
     resultsContainer.appendChild(container);
-    console.log(`UI: Appended new ${viewMode} container to results`);
-    
+
     // Update the toggle button
     updateViewToggleButton(viewMode);
     
@@ -284,7 +281,7 @@ function updateViewToggleButton(viewMode) {
     const cardViewBtn = document.getElementById('card-view-btn');
     
     if (!listViewBtn || !cardViewBtn) {
-      console.warn('UI: View toggle buttons not found');
+      
       return;
     }
     
@@ -308,8 +305,7 @@ function updateViewToggleButton(viewMode) {
  */
 async function updateResults() {
   try {
-    console.log('UI: Updating results based on filters and search query');
-    
+
     // Show a loading indicator if it exists
     const loadingIndicator = document.getElementById('loading-indicator');
     if (loadingIndicator) {
@@ -318,8 +314,7 @@ async function updateResults() {
     
     // Get all studies
     const allStudies = AppState.getStudies();
-    console.log(`UI: Starting with ${allStudies ? allStudies.length : 0} total studies in AppState`);
-    
+
     if (!allStudies || !Array.isArray(allStudies) || allStudies.length === 0) {
       console.error('UI: No studies data available in AppState');
       displayError('No studies data available. Please try refreshing the page.');
@@ -331,22 +326,20 @@ async function updateResults() {
     
     // Get search query from AppState
     const searchQuery = AppState.getSearchQuery() || '';
-    console.log(`UI: Using search query: "${searchQuery}"`);
-    
+
     // Get category filters from AppState
     const categoryFilters = AppState.getCategoryFilters();
-    console.log(`UI: Using ${categoryFilters.length} category filters`);
-    
+
     // Import search functions from search-engine
     const { search, filterStudies } = await import('./search-engine.js');
     
     // First, search for studies matching the query
     let searchResults = allStudies;
     if (searchQuery) {
-      console.log(`UI: Searching for: "${searchQuery}"`);
+      
       try {
         searchResults = await search(searchQuery, allStudies);
-        console.log(`UI: Search returned ${searchResults.length} results`);
+        
       } catch (searchError) {
         console.error('UI: Error during search:', searchError);
         // Fall back to all studies on search error
@@ -357,9 +350,9 @@ async function updateResults() {
     // Then filter by category if needed
     let finalResults = searchResults;
     if (categoryFilters && categoryFilters.length > 0) {
-      console.log('UI: Applying category filters');
+      
       finalResults = filterStudies(searchResults);
-      console.log(`UI: After filtering, ${finalResults.length} studies remain`);
+      
     }
     
     // Update active filters UI
@@ -371,7 +364,7 @@ async function updateResults() {
     }
     
     // Update results display
-    console.log(`UI: Displaying ${finalResults.length} studies`);
+    
     displayStudies(finalResults);
     
   } catch (error) {
@@ -393,15 +386,12 @@ async function updateResults() {
  */
 function displayStudies(studies, forceDisplay = false) {
   try {
-    console.log(`UI: displayStudies called with ${studies ? studies.length : 'no'} studies. forceDisplay=${forceDisplay}`);
-    
+
     // Inspect what we received for debugging
     if (studies && studies.length > 0) {
-      console.log('UI: First study sample:', JSON.stringify(studies[0]).substring(0, 200));
-      console.log('UI: Study categories type:', typeof studies[0].categories);
-      console.log('UI: Study categories value:', studies[0].categories);
+
     } else {
-      console.log('UI: No studies received or empty array');
+      
     }
     
     // Use a safe copy of studies to avoid issues
@@ -418,16 +408,15 @@ function displayStudies(studies, forceDisplay = false) {
     
     // If no studies to display and not forcing display, show message
     if (safeStudies.length === 0 && !forceDisplay) {
-      console.log('UI: No studies to display');
+      
       resultsContainer.innerHTML = '<div class="no-results">No studies match your filters. Try adjusting your search criteria.</div>';
-      console.log('UI: Displayed "No studies match your filters" message');
+      
       return;
     }
     
     // Get current view mode
     const viewMode = AppState.getViewMode();
-    console.log(`UI: Displaying studies in ${viewMode} view`);
-    
+
     // Process each study
     let displayCount = 0;
     
@@ -445,7 +434,7 @@ function displayStudies(studies, forceDisplay = false) {
       safeStudies.forEach((study, index) => {
         try {
           if (!study) {
-            console.warn(`UI: Study at index ${index} is null or undefined`);
+            
             return;
           }
           
@@ -478,7 +467,7 @@ function displayStudies(studies, forceDisplay = false) {
       safeStudies.forEach((study, index) => {
         try {
           if (!study) {
-            console.warn(`UI: Study at index ${index} is null or undefined`);
+            
             return;
           }
           
@@ -505,9 +494,7 @@ function displayStudies(studies, forceDisplay = false) {
         }
       });
     }
-    
-    console.log(`UI: Successfully displayed ${displayCount} of ${safeStudies.length} studies in ${viewMode} view`);
-    
+
     // If no studies were actually displayed, show a message
     if (displayCount === 0 && safeStudies.length > 0) {
       resultsContainer.innerHTML = '<div class="no-results">Error displaying studies. Check console for details.</div>';
@@ -526,11 +513,10 @@ function displayStudies(studies, forceDisplay = false) {
  */
 function loadFiltersFromURL() {
   try {
-    console.log('UI: Loading filters from URL parameters');
-    
+
     // Ensure AppState is initialized
     if (!window.isAppInitialized || !window.isAppInitialized()) {
-      console.warn('UI: Cannot load filters - app not fully initialized');
+      
       return;
     }
     
@@ -541,8 +527,7 @@ function loadFiltersFromURL() {
     const categoriesParam = params.get('categories');
     if (categoriesParam) {
       const categories = categoriesParam.split(',').map(c => c.trim());
-      console.log(`UI: Loading category filters from URL: ${categories.join(', ')}`);
-      
+
       // Check all corresponding checkboxes
       categories.forEach(category => {
         const checkbox = document.querySelector(`#category-filters input[value="${category}"]`);
@@ -550,7 +535,7 @@ function loadFiltersFromURL() {
           checkbox.checked = true;
           AppState.addCategoryFilter(category);
         } else {
-          console.warn(`UI: Category "${category}" from URL not found in available filters`);
+          
         }
       });
     }
@@ -559,8 +544,7 @@ function loadFiltersFromURL() {
     const subjectsParam = params.get('subjects');
     if (subjectsParam) {
       const subjects = subjectsParam.split(',').map(s => s.trim());
-      console.log(`UI: Loading subject filters from URL: ${subjects.join(', ')}`);
-      
+
       // Check all corresponding checkboxes
       subjects.forEach(subject => {
         const checkbox = document.querySelector(`#subject-filters input[value="${subject}"]`);
@@ -568,7 +552,7 @@ function loadFiltersFromURL() {
           checkbox.checked = true;
           AppState.addSubjectFilter(subject);
         } else {
-          console.warn(`UI: Subject "${subject}" from URL not found in available filters`);
+          
         }
       });
     }
@@ -576,7 +560,7 @@ function loadFiltersFromURL() {
     // Load search query
     const searchParam = params.get('q');
     if (searchParam) {
-      console.log(`UI: Loading search query from URL: "${searchParam}"`);
+      
       const searchInput = document.getElementById('search-input');
       if (searchInput) {
         searchInput.value = searchParam;
@@ -586,9 +570,7 @@ function loadFiltersFromURL() {
     
     // Update results with the loaded filters
     updateResults();
-    
-    console.log('UI: Successfully loaded filters from URL');
-    
+
   } catch (error) {
     console.error('UI: Error loading filters from URL:', error);
     // Continue without filters
@@ -639,7 +621,7 @@ function populateCategoryFilters(categories) {
     
     const categoryFiltersContainer = document.getElementById('category-filters');
     if (!categoryFiltersContainer) {
-      console.warn('UI: Category filters container not found in DOM');
+      
       return;
     }
     
@@ -663,8 +645,7 @@ function populateCategoryFilters(categories) {
       // Add to active filters initially since all are active by default
       AppState.addCategoryFilter(category);
     });
-    
-    console.log(`UI: Populated ${sortedCategories.length} domain buttons`);
+
     updateResults();
   } catch (error) {
     console.error('UI: Error populating category filters:', error);
@@ -689,9 +670,7 @@ function getCategoryBadges(study) {
     if (categoriesArr.length === 0) {
       return '';
     }
-    
-    console.log(`UI: Creating badges for ${categoriesArr.length} categories`);
-    
+
     return categoriesArr.map(category => {
       const safeCategory = category.trim();
       const categoryClass = getDomainClass({ categories: safeCategory });
@@ -711,7 +690,7 @@ function getCategoryBadges(study) {
 function getDomainClass(study) {
   try {
     if (!study || !study.categories) {
-      console.log('UI: No categories found for domain class');
+      
       return 'domain-default';
     }
     
@@ -720,8 +699,7 @@ function getDomainClass(study) {
       : study.categories.split('|');
     
     const primaryCategory = categories[0]?.trim() || '';
-    console.log(`UI: Finding domain class for primary category: ${primaryCategory}`);
-    
+
     // Map category to domain class
     if (primaryCategory.includes('AI Use') || 
         primaryCategory.includes('Perception') || 
@@ -747,8 +725,7 @@ function getDomainClass(study) {
              primaryCategory === 'Current State of Guidelines, Training, and Policies') {
       return 'domain-guidelines'; // Red color
     }
-    
-    console.log(`UI: No matching domain found for "${primaryCategory}", using default`);
+
     return 'domain-default';
   } catch (error) {
     console.error('UI: Error determining domain class:', error);

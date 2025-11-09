@@ -15,21 +15,21 @@ const RETRY_DELAY = 1000; // ms
  * @returns {Promise<Array>} Promise resolving to a safe, normalized array of studies
  */
 export async function bootstrapApplication() {
-  console.log('BOOTSTRAP: Starting application bootstrap process');
+  
   let retries = 0;
   let studies = null;
   
   // Try to load studies with retries
   while (retries < MAX_RETRIES) {
     try {
-      console.log(`BOOTSTRAP: Loading studies data (attempt ${retries + 1}/${MAX_RETRIES})`);
+      
       studies = await loadStudiesData();
       
       if (studies && Array.isArray(studies) && studies.length > 0) {
-        console.log(`BOOTSTRAP: Successfully loaded ${studies.length} studies`);
+        
         break;
       } else {
-        console.warn('BOOTSTRAP: Loaded studies data is invalid or empty');
+        
         // Clear studies to ensure retry
         studies = null;
       }
@@ -39,7 +39,7 @@ export async function bootstrapApplication() {
     
     retries++;
     if (retries < MAX_RETRIES) {
-      console.log(`BOOTSTRAP: Retrying in ${RETRY_DELAY}ms...`);
+      
       await delay(RETRY_DELAY);
     }
   }
@@ -51,10 +51,9 @@ export async function bootstrapApplication() {
   }
   
   // Normalize and validate studies data
-  console.log('BOOTSTRAP: Normalizing and validating studies data');
-  const normalizedStudies = normalizeStudiesData(studies);
-  console.log(`BOOTSTRAP: Normalized ${normalizedStudies.length} studies`);
   
+  const normalizedStudies = normalizeStudiesData(studies);
+
   return normalizedStudies;
 }
 

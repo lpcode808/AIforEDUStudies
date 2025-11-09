@@ -13,8 +13,7 @@ import AppState from './state.js';
  */
 function createStudyCard(study) {
   try {
-    console.log(`COMPONENT: Creating study card for study ID: ${study?.id || 'unknown'}`);
-    
+
     // Handle undefined study data
     if (!study) {
       console.error('COMPONENT: Cannot create study card - study is undefined');
@@ -64,7 +63,7 @@ function createStudyCard(study) {
     const domainClass = getDomainClass([primaryCategory]);
     if (domainClass) {
         card.classList.add(domainClass);
-        console.log(`Adding domain class ${domainClass} to card for category: ${primaryCategory}`);
+        
     }
     
     // Create and add color accent based on domain category
@@ -91,7 +90,7 @@ function createStudyCard(study) {
     
     if (colorAccent) {
       card.classList.add(colorAccent);
-      console.log(`Adding color accent ${colorAccent} to card for category: ${primaryCategory}`);
+      
     }
     
     // Format the date if available
@@ -110,7 +109,7 @@ function createStudyCard(study) {
           dateDisplay = `<div class="study-date">${safeStudy.date}</div>`;
         }
       } catch (e) {
-        console.warn(`COMPONENT: Error formatting date for study ${safeStudy.id}:`, e);
+        
         dateDisplay = `<div class="study-date">${safeStudy.date}</div>`;
       }
     }
@@ -267,7 +266,7 @@ function formatMetadataValue(value) {
 function createFilterChip(label, type, onRemove) {
   try {
     if (!label || typeof label !== 'string') {
-      console.warn('COMPONENT: Cannot create filter chip - invalid label');
+      
       return null;
     }
     
@@ -343,7 +342,7 @@ function createStudyRow(study) {
     const domainClass = getDomainClass(categories);
     if (domainClass) {
       row.classList.add(domainClass);
-      console.log(`Adding domain class ${domainClass} to row for category:`, categories[0]);
+      
     }
     
     let colorClass = 'var(--color-primary)';
